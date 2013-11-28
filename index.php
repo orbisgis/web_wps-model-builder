@@ -15,7 +15,7 @@
 				border: 1px solid rgb(202, 202, 202); 
 				overflow: hidden; 
 				background-color: white; 
-				background-image: url(https://www.draw.io/images/grid.gif); 
+				background-image: url(<?php echo $prefix_adresse ?>assets/img/grid.gif); 
 				width: 800px; 
 				height: 400px;
 			};
@@ -30,6 +30,11 @@
 					<button id="add-link">Ajouter un lien</button>
 					<br />
 					<span id="selected-box"></span>
+					<br />
+					<br />
+					<button id="get-capabilities">GetCapabilities</button>
+					<br />
+					<ul id="list-process"></ul>
 				</div>
 
 				<div id="svg-container" class="span10">
@@ -41,6 +46,7 @@
 		<script src="<?php echo $prefix_adresse ?>assets/js/SVG.js"></script>
 		<script src="<?php echo $prefix_adresse ?>assets/js/svg.draggable.js"></script>
 		<script src="<?php echo $prefix_adresse ?>assets/js/box.js"></script>
+		<script src="<?php echo $prefix_adresse ?>assets/js/process.js"></script>
 		<script src="<?php echo $prefix_adresse ?>assets/js/main.js"></script>
 	</body>
 </html>

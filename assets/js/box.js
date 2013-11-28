@@ -27,24 +27,62 @@
 		}
 	})();
 			
-	function Box(x, y) {
+	function Box(x, y, process) {
 		this._selected = false;
+
+		if(arguments.length >= 3) {
+			this._process = process;
+			this._name = process.getName() || 'Container';
 		
-		if(arguments.length > 1) {
 			var self = this;
+					
+			this._group = draw.group();
 			
-			this._box = draw.rect(BOX_WIDTH, BOX_HEIGHT)
+			// set the box name
+			var text = draw.text(this._name).move(10, 0);
+			
+			// get height and width for the box container
+			var height = BOX_HEIGHT * (process.getInputs() + 2);
+			var width = 20 + text.bbox().width;
+			
+			// the container
+			var boxContainer = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (height + 10) + 'L10,' + (height + 10) + 'L10,10')
 				.attr({ 
-					fill: 'white',
+					'fill': 'white',
 					'stroke': BOX_STROKE_COLOR,
-					'stroke-width': 1,
-					'cursor': 'move',
-				})
-				.move(x, y)
-				.draggable();
+					'stroke-width': 1
+				});
+			
+			// the header
+			var boxHeader = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (BOX_HEIGHT + 10) + 'L10,' + (BOX_HEIGHT + 10) + 'L10,10')
+				.attr({ 
+					'fill': 'white',
+					'stroke': BOX_STROKE_COLOR,
+					'stroke-width': 1
+				});
+			
+			var inputGroup = draw.group();
+			
+			for(var i=0, j=process.getInputs(); i<j; i++) {
+				var circle = draw.circle(LINE_DIRECTION_RADIUS)
+					.move(-LINE_DIRECTION_RADIUS/2, (BOX_HEIGHT * (i + 2)) - (LINE_DIRECTION_RADIUS/2));
+				
+				inputGroup.add(circle);
+			}
+			
+			
+			// add everything to the group	
+			this._group.add(boxContainer);
+			this._group.add(boxHeader);
+			this._group.add(text);
+			this._group.remember('inputes-circle', inputGroup);
+			this._group.add(inputGroup);
+			
+			// move the group and set it draggable
+			this._group.move(x, y).attr('cursor', 'move').draggable();
 			
 			// select the box when we click on it
-			this._box.click(function() {
+			this._group.click(function() {
 				// the line end in the box
 				if(drawingLine) {
 					self.endLine();
@@ -55,23 +93,23 @@
 			});
 			
 			// set a color when enter in the box
-			this._box.on('mouseenter', function(e) {
-				self._box.stroke({ color: BOX_SELECTED_COLOR });
+			this._group.on('mouseenter', function(e) {
+				self.setStrokeColor(BOX_SELECTED_COLOR);
 			});
 			
 			// remove the color when enter in the box
-			this._box.on('mouseleave', function(e) {
+			this._group.on('mouseleave', function(e) {
 				if(!self.isSelected()) {
-					self._box.stroke({ color: BOX_STROKE_COLOR });
+					self.setStrokeColor(BOX_STROKE_COLOR);
 				}
 			});
-
+			
 			// remember the lines we linked to this box
-			this._box.remember('lines-start', []);
-			this._box.remember('lines-end', []);
+			this._group.remember('lines-start', []);
+			this._group.remember('lines-end', []);
 			
 			// remember the start and end of the line
-			this._box.dragstart = function() {
+			this._group.dragstart = function() {
 				var linesStart = this.remember('lines-start'),
 					linesEnd = this.remember('lines-end'),
 					i, j, l
@@ -92,7 +130,7 @@
 			}
 			
 			// move the line
-			this._box.dragmove = function(delta, event) {
+			this._group.dragmove = function(delta, event) {
 				var linesStart = this.remember('lines-start'),
 					linesEnd = this.remember('lines-end'),
 					i, j, l, x, y, circle;
@@ -111,28 +149,50 @@
 					y = l.remember('end-y') + delta.y;
 						
 					l.attr('x2', x).attr('y2', y);
-					
-					circle = l.remember('circle');
-					circle.move(x-LINE_DIRECTION_RADIUS/2, y-LINE_DIRECTION_RADIUS/2);
 				}
 			}
 		}
 	};
-		
+	
 	Box.setDraw = function(drawId) {
 		draw = SVG(drawId);
 		
+		var getGroupFromElement = function(el) {
+			if(el.type === 'g') {
+				return el;
+			} else if(el.parent) {
+				return getGroupFromElement(el.parent);
+			} else {
+				return;
+			}
+		}	
+	
 		// move the line as the mouse does
 		draw.on('mousemove', function(e) {
 			if(drawingLine) {
 				drawingLine.attr('x2', e.offsetX).attr('y2', e.offsetY);
 				
 				if(!Box.isSelectedBox(e.target) && e.target.id !== draw.node.id) {
-					var element = SVG.get(e.target.id);
+					var element = getGroupFromElement(SVG.get(e.target.id));
 					
-					if(element) {								
+					if(element) {	
+						var inputGroup = element.remember('inputes-circle');
 						var bbox = element.bbox();
-						drawingLine.attr('x2', bbox.cx).attr('y2', bbox.cy);
+						
+						if(inputGroup && inputGroup.children().length > 0) {
+							var inputs = inputGroup.children(),
+								minY = Math.abs(bbox.y + inputs[0].attr('cy') - e.offsetY),
+								minIndex = 0;
+								
+							for(var i=1, j=inputs.length; i<j; i++) {
+								if(minY > Math.abs(bbox.y + inputs[i].attr('cy') - e.offsetY)) {
+									minY = Math.abs(bbox.y + inputs[i].attr('cy') - e.offsetY);
+									minIndex = i;
+								}
+							}
+							
+							drawingLine.attr('x2', bbox.x).attr('y2', bbox.y + inputs[minIndex].attr('cy'));
+						}
 					}
 				} 
 			}
@@ -143,18 +203,18 @@
 			if(e.target.id === draw.node.id) {
 				Box.unselect();
 			}
-	});
+		});
 	}
 	
 	Box.prototype.getId = function() {
-		return this._box ? this._box.node.id : '';
+		return this._group ? this._group.node.id : '';
 	}
 	
 	Box.prototype.remove = function() {
-		if(this._box) {
+		if(this._group) {
 			// delete all lines
-			var linesStart = this._box.remember('lines-start'),
-				linesEnd = this._box.remember('lines-end'),
+			var linesStart = this._group.remember('lines-start'),
+				linesEnd = this._group.remember('lines-end'),
 				i, j, line, b, 
 				lines, k, l, index;
 				
@@ -180,7 +240,6 @@
 					b.remember('lines-end', lines);
 				}
 				
-				line.remember('circle').remove();
 				line.remove();
 			}
 			
@@ -206,27 +265,26 @@
 					b.remember('lines-start', lines);
 				}
 				
-				line.remember('circle').remove();
 				line.remove();
 			}						
 			
-			this._box.remove();
+			this._group.remove();
 		}
 	};
 	
 	Box.prototype.startLine = function() {
-		if(this._box) {
-			var bbox = this._box.bbox();
-			var line = draw.line(bbox.cx, bbox.cy, bbox.cx, bbox.cy)
+		if(this._group) {
+			var bbox = this._group.bbox();
+			var line = draw.line(bbox.x + bbox.width, bbox.y + BOX_HEIGHT + (bbox.height-BOX_HEIGHT)/2, bbox.cx, bbox.cy)
 				.stroke({ width: 1 });
 				
 			// remember the line
-			var lines = this._box.remember('lines-start');
+			var lines = this._group.remember('lines-start');
 			lines.push(line);
-			this._box.remember('lines-start', lines);
+			this._group.remember('lines-start', lines);
 			
 			// set the id of the starting box
-			line.remember('start', this._box.node.id);
+			line.remember('start', this._group.node.id);
 
 			// we have now a drawing line
 			drawingLine = line;
@@ -234,21 +292,12 @@
 	};
 	
 	Box.prototype.endLine = function() {
-		if(this._box) {
-			var lines = this._box.remember('lines-end');
+		if(this._group) {
+			var lines = this._group.remember('lines-end');
 			lines.push(drawingLine);
-			this._box.remember('lines-end', lines);
+			this._group.remember('lines-end', lines);
 			
-			drawingLine.remember('end', this._box.node.id);
-			
-			// draw a circle to set the direction
-			var x = drawingLine.attr('x2'),
-				y = drawingLine.attr('y2');
-			var circle = draw.circle(LINE_DIRECTION_RADIUS)
-				.move(x-LINE_DIRECTION_RADIUS/2, y-LINE_DIRECTION_RADIUS/2)
-				.fill('black')
-				.stroke({ width: 1 });
-			drawingLine.remember('circle', circle);	
+			drawingLine.remember('end', this._group.node.id);
 			
 			// set to null the drawing line
 			drawingLine = null;
@@ -259,6 +308,16 @@
 		return this._selected;
 	}
 
+	Box.prototype.setStrokeColor = function(color) {
+		if(this._group) {	
+			this._group.each(function() { 
+				if(this.type === 'path') {
+					this.stroke({ color: color });
+				}
+			});
+		}
+	}
+	
 	Box.prototype.select = function() {
 		// clear the old selected box
 		Box.unselect();
@@ -267,17 +326,14 @@
 		_selectedBox = this;
 		this._selected = true;
 		
-		_selectedBox._box.stroke({ color: BOX_SELECTED_COLOR });
+		this.setStrokeColor(BOX_SELECTED_COLOR);
 		
 		window.dispatchEvent(new Event('select-box'));
 	}
 	
 	Box.prototype.unselect = function() {
 		this._selected = false;
-		
-		if(this._box) {
-			this._box.stroke({ color: BOX_STROKE_COLOR });
-		}
+		this.setStrokeColor(BOX_STROKE_COLOR);
 		
 		window.dispatchEvent(new Event('unselect-box'));
 	}
@@ -288,17 +344,34 @@
 		}
 	}
 	
-	Box.isSelectedBox = function(box) {
-		return !!_selectedBox && !!_selectedBox._box && !!box && 
-			((!!box.id && box.id === _selectedBox._box.node.id) || (!!box.node && !!box.node.id && box.node.id === _selectedBox._box.node.id));
+	var testId = function(el, id) {
+		return !!id && !!el && ((!!el.id && el.id === id) || (!!el.node && !!el.node.id && el.node.id === id))
+	}
+	
+	var testIdRev = function(el, id) {
+		if(testId(el, id)) {
+			return true;
+		} else {
+			return el.parentNode ? testIdRev(el.parentNode, id) : false;
+		}
+	}
+	
+	Box.isSelectedBox = function(el) {
+		if(_selectedBox && _selectedBox._group) {
+			var id = _selectedBox._group.node.id;
+			
+			return testIdRev(el, id);
+		} else {
+			return false;
+		}
 	}
 	
 	Box.getSelectedBox = function() {
-		return _selectedBox;
+		return !!_selectedBox ? _selectedBox : new Box();
 	}
 	
 	Box.prototype.getSVGBox = function() {
-		return this._box;
+		return this._group;
 	}
 		
 	window.Box = Box;
