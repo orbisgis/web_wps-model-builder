@@ -4,6 +4,8 @@ $(function() {
 		$addLink = $('#add-link'),
 		$selectedBoxSpan = $('#selected-box');
 	
+	Box.setDraw('svg-container');
+	
 	$addFilter.click(function(e) {				
 		// add the box to the boxes list
 		new Box(Math.random() * 800, Math.random() * 400);

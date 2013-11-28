@@ -1,8 +1,14 @@
 (function(window) {
-	var draw = SVG('svg-container');
+	// the current draw
+	var draw;
+	
+	// the selected box
 	var _selectedBox;
+	
+	// the line we are drawing
 	var drawingLine;
 
+	// constants
 	var BOX_WIDTH = 50;
 	var BOX_HEIGHT = 25;
 	var BOX_STROKE_COLOR = 'black';
@@ -20,29 +26,7 @@
 			return color;
 		}
 	})();
-	
-	// move the line as the mouse does
-	draw.on('mousemove', function(e) {
-		if(drawingLine) {
-			drawingLine.attr('x2', e.offsetX).attr('y2', e.offsetY);
 			
-			if(!Box.isSelectedBox(e.target) && e.target.id !== draw.node.id) {
-				var element = SVG.get(e.target.id);
-				
-				if(element) {								
-					var bbox = element.bbox();
-					drawingLine.attr('x2', bbox.cx).attr('y2', bbox.cy);
-				}
-			} 
-		}
-	});
-	
-	draw.on('click', function(e) {
-		if(e.target.id === draw.node.id) {
-			Box.unselect();
-		}
-	});
-				
 	function Box(x, y) {
 		this._selected = false;
 		
@@ -135,6 +119,33 @@
 		}
 	};
 		
+	Box.setDraw = function(drawId) {
+		draw = SVG(drawId);
+		
+		// move the line as the mouse does
+		draw.on('mousemove', function(e) {
+			if(drawingLine) {
+				drawingLine.attr('x2', e.offsetX).attr('y2', e.offsetY);
+				
+				if(!Box.isSelectedBox(e.target) && e.target.id !== draw.node.id) {
+					var element = SVG.get(e.target.id);
+					
+					if(element) {								
+						var bbox = element.bbox();
+						drawingLine.attr('x2', bbox.cx).attr('y2', bbox.cy);
+					}
+				} 
+			}
+		});
+		
+		// unselect the selected box when we click on the draw
+		draw.on('click', function(e) {
+			if(e.target.id === draw.node.id) {
+				Box.unselect();
+			}
+	});
+	}
+	
 	Box.prototype.getId = function() {
 		return this._box ? this._box.node.id : '';
 	}
