@@ -47,6 +47,8 @@
 		<script src="<?php echo $prefix_adresse ?>assets/js/svg.draggable.js"></script>
 		<script src="<?php echo $prefix_adresse ?>assets/js/box.js"></script>
 		<script src="<?php echo $prefix_adresse ?>assets/js/process.js"></script>
+		<script src="<?php echo $prefix_adresse ?>assets/js/wps.js"></script>
+		<script src="<?php echo $prefix_adresse ?>assets/js/WPSManager.js"></script>
 		<script src="<?php echo $prefix_adresse ?>assets/js/main.js"></script>
 	</body>
 </html>

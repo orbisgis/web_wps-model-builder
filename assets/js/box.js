@@ -33,22 +33,41 @@
 		if(arguments.length >= 3) {
 			this._process = process;
 			this._name = process.getName() || 'Container';
+			var inputs = process.getInputs();
 		
 			var self = this;
 					
 			this._group = draw.group();
 			
 			// set the box name
-			var text = draw.text(this._name).move(10, 0);
+			var text = draw.text(this._name);
 			
 			// get height and width for the box container
-			var height = BOX_HEIGHT * (process.getInputs() + 2);
+			var height = BOX_HEIGHT * (inputs.length + 2);
 			var width = 20 + text.bbox().width;
 			
+			// circle for inputs
+			var inputGroup = draw.group();
+			for(var i=0, j=inputs.length; i<j; i++) {
+				var circle = draw.circle(LINE_DIRECTION_RADIUS)
+					.move(-LINE_DIRECTION_RADIUS/2, (BOX_HEIGHT * (i + 2)) - (LINE_DIRECTION_RADIUS/2));
+				
+				var textProcess = draw.text(inputs[i]),
+					textBBox = textProcess.bbox();
+				textProcess.move(LINE_DIRECTION_RADIUS, circle.bbox().cy + (LINE_DIRECTION_RADIUS / 2) - textBBox.height);
+
+				// add the input name and circle to the groups
+				this._group.add(textProcess);
+				inputGroup.add(circle);
+
+				// get the max with
+				width = Math.max(width, textBBox.width + 2 * LINE_DIRECTION_RADIUS);
+			}
+
 			// the container
 			var boxContainer = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (height + 10) + 'L10,' + (height + 10) + 'L10,10')
 				.attr({ 
-					'fill': 'white',
+					'fill': 'none',
 					'stroke': BOX_STROKE_COLOR,
 					'stroke-width': 1
 				});
@@ -56,20 +75,13 @@
 			// the header
 			var boxHeader = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (BOX_HEIGHT + 10) + 'L10,' + (BOX_HEIGHT + 10) + 'L10,10')
 				.attr({ 
-					'fill': 'white',
+					'fill': 'none',
 					'stroke': BOX_STROKE_COLOR,
 					'stroke-width': 1
 				});
-			
-			var inputGroup = draw.group();
-			
-			for(var i=0, j=process.getInputs(); i<j; i++) {
-				var circle = draw.circle(LINE_DIRECTION_RADIUS)
-					.move(-LINE_DIRECTION_RADIUS/2, (BOX_HEIGHT * (i + 2)) - (LINE_DIRECTION_RADIUS/2));
-				
-				inputGroup.add(circle);
-			}
-			
+
+			// center the text
+			text.move((width - text.bbox().width) / 2, 0);
 			
 			// add everything to the group	
 			this._group.add(boxContainer);
@@ -268,6 +280,8 @@
 				line.remove();
 			}						
 			
+			// unselect the box then remove it 
+			this.unselect();
 			this._group.remove();
 		}
 	};
@@ -332,10 +346,14 @@
 	}
 	
 	Box.prototype.unselect = function() {
-		this._selected = false;
-		this.setStrokeColor(BOX_STROKE_COLOR);
-		
-		window.dispatchEvent(new Event('unselect-box'));
+		if(this._selected) {
+			_selectedBox = undefined;
+
+			this._selected = false;
+			this.setStrokeColor(BOX_STROKE_COLOR);
+			
+			window.dispatchEvent(new Event('unselect-box'));
+		}
 	}
 	
 	Box.unselect = function() {

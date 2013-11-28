@@ -3,7 +3,7 @@
 	function Process(name) {
 		this._name = name;
 		this._box;
-		this._inputs = parseInt(Math.random() * 4);
+		this._inputs = [];
 	}
 	
 	Process.prototype.getInputs = function() {
