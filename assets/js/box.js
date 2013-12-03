@@ -1,4 +1,4 @@
-(function(window) {
+define(['SVG', 'svg/svg.draggable'], function(SVG) {
 	// the current draw
 	var draw;
 	
@@ -32,7 +32,7 @@
 
 		if(arguments.length >= 3) {
 			this._process = process;
-			this._name = process.getName() || 'Container';
+			this._name = process.getDisplayName() || 'Container';
 			var inputs = process.getInputs();
 		
 			var self = this;
@@ -51,8 +51,8 @@
 			for(var i=0, j=inputs.length; i<j; i++) {
 				var circle = draw.circle(LINE_DIRECTION_RADIUS)
 					.move(-LINE_DIRECTION_RADIUS/2, (BOX_HEIGHT * (i + 2)) - (LINE_DIRECTION_RADIUS/2));
-				
-				var textProcess = draw.text(inputs[i]),
+
+				var textProcess = draw.text(inputs[i].getDisplayName()),
 					textBBox = textProcess.bbox();
 				textProcess.move(LINE_DIRECTION_RADIUS, circle.bbox().cy + (LINE_DIRECTION_RADIUS / 2) - textBBox.height);
 
@@ -82,7 +82,7 @@
 
 			// center the text
 			text.move((width - text.bbox().width) / 2, 0);
-			
+
 			// add everything to the group	
 			this._group.add(boxContainer);
 			this._group.add(boxHeader);
@@ -392,5 +392,5 @@
 		return this._group;
 	}
 		
-	window.Box = Box;
-})(window);
+	return Box;
+});

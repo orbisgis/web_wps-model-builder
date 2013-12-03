@@ -1,21 +1,23 @@
-$(function() {
+define(['jquery', 'WPS/WPSManager', 'box'], function($, WPSManager, Box) {
 	// DOM elements
 	var $addFilter = $('#add-filter'),
 		$deleteFilter = $('#delete-filter'),
 		$addLink = $('#add-link'),
-		$selectedBoxSpan = $('#selected-box');
-	
+		$selectedBoxSpan = $('#selected-box'),
+		$listProcess = $('#list-process'),
+		$processDescription = $('#process-description');
+
 	// set constants for objects
 	Box.setDraw('svg-container');
 	WPSManager.setProxyURL('http://localhost/wps/lib/proxy.php?url=');
 
-	var WPSManagerAgroCampus = new WPSManager('http://geowww.agrocampus-ouest.fr/cgi-bin/hswps.cgi?service=wps');
-	var _selectedProcess = '';
+	var WPSManagerAgroCampus = new WPSManager('http://localhost:8080/geoserver/ows?service=WPS&version=1.0.0');
 
-	$addFilter.click(function(e) {				
+	$addFilter.click(function(e) {	
+		var identifier = $listProcess.find('option:selected').attr('data-identifier');
+		
 		// add the box to the boxes list
-		var process = new ProcessWPS(WPSManagerAgroCampus.getProcess(_selectedProcess));
-		process.render();
+		WPSManagerAgroCampus.getProcess(identifier).render();
 	});
 	
 	$deleteFilter.click(function() {
@@ -33,38 +35,35 @@ $(function() {
 	$(window).on('select-box', function(e) {					
 		$selectedBoxSpan.text(Box.getSelectedBox().getId());
 	});
-	
-	var getCapabilities = function() {
-		if(WPSManagerAgroCampus.isReady) {
-			var processes = WPSManagerAgroCampus.getProcesses(),
-				$listProcess = $('#list-process');
 
-			$listProcess.html('');
+	WPSManagerAgroCampus.getCapabilities(function(processes) {
+		if(processes) {
+			$listProcess.on('change', function() {
+				var identifier = $listProcess.find('option:selected').attr('data-identifier');
+
+				WPSManagerAgroCampus.describeProcess(identifier, function(process) {
+					if(process) {
+						$processDescription.html('');
+						$processDescription.append('<h3>' + process.getDisplayName() + '</h3>');
+						var $ul = $processDescription.append('<ul></ul>').find('ul'),
+							inputs = process.getInputs();
+
+						for(var i=0, j=inputs.length; i<j; i++) {
+							$ul.append('<li>' + inputs[i].toString() + '</li>');
+						}
+					} else {
+						alert("Une erreur est survenue pendant la récupération du processus " + identifier);
+					}
+				});
+			});
 
 			for(var identifier in processes) {
 				var process = processes[identifier];
-				
-				var $li = $('<li data-identifier="' + identifier + '">' + identifier + '</li>');
 
-				$li.click(function() {
-					var $this = $(this);
-					
-					if(_selectedProcess) {
-						$listProcess.find('[data-identifier=' + _selectedProcess + ']').css('color', 'black');
-					}
-					
-					$this.css('color', 'red');
-					_selectedProcess = $this.attr('data-identifier');
-				});
-				
-				$listProcess.append($li);
-			}
+				$listProcess.append('<option data-identifier="' + identifier + '">' + process.getDisplayName() + '</option>');
+			}	
 		} else {
-			alert("L'objet n'est pas encore initialisé!");
-		}		
-	}
-	
-	$('#get-capabilities').click(function() {
-		getCapabilities();
+			alert("Une erreur est survenue pendant la récupération des processus");
+		}
 	});
 });

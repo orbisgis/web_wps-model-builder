@@ -31,24 +31,26 @@
 					<br />
 					<span id="selected-box"></span>
 					<br />
+					<select id="list-process"></select> 
 					<br />
-					<button id="get-capabilities">GetCapabilities</button>
-					<br />
-					<ul id="list-process"></ul>
+					<div id="process-description"></div>
 				</div>
 
 				<div id="svg-container" class="span10">
 				</div>
 			</div>
 		</div>
+
+		<div id="splash-screen"></div>
 		
-		<script src="<?php echo $prefix_adresse ?>assets/js/jquery-2.0.3.min.js"></script>
-		<script src="<?php echo $prefix_adresse ?>assets/js/SVG.js"></script>
-		<script src="<?php echo $prefix_adresse ?>assets/js/svg.draggable.js"></script>
-		<script src="<?php echo $prefix_adresse ?>assets/js/box.js"></script>
-		<script src="<?php echo $prefix_adresse ?>assets/js/process.js"></script>
-		<script src="<?php echo $prefix_adresse ?>assets/js/wps.js"></script>
-		<script src="<?php echo $prefix_adresse ?>assets/js/WPSManager.js"></script>
-		<script src="<?php echo $prefix_adresse ?>assets/js/main.js"></script>
+		<script data-main="assets/js/main" src="<?php echo $prefix_adresse ?>assets/js/require.js"></script>
+		<script>
+			requirejs.config({
+				paths: {
+					'jquery': 'jquery/jquery-2.0.3.min',
+					'SVG': 'svg/SVG'
+				}
+			});
+		</script>
 	</body>
 </html>
