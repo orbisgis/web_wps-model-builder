@@ -127,7 +127,7 @@ define(['SplashScreen', 'process/process', 'process/data'], function(splashScree
 										
 									if(allowedValues.length > 0) {
 										allowedValues = allowedValues[0].children;
-										inputData['type'] = 'choice';
+										inputData['type'] = 'string-choice';
 
 										for(var k=0, l=allowedValues.length; k<l; k++) {
 											inputData['allowedValues'].push(allowedValues[k].textContent);
@@ -169,9 +169,9 @@ define(['SplashScreen', 'process/process', 'process/data'], function(splashScree
 						
 						for(var i=0, j=processOutputs.children.length; i<j; i++) {
 							var output = processOutputs.children[i],
-								dataIdentifier = input.getElementsByTagName('Identifier'),
-								displayName = input.getElementsByTagName('Title'),
-								abstract = input.getElementsByTagName('Abstract');
+								dataIdentifier = output.getElementsByTagName('Identifier'),
+								displayName = output.getElementsByTagName('Title'),
+								abstract = output.getElementsByTagName('Abstract');
 							
 							if(dataIdentifier.length > 0) {
 								var outputData = {
@@ -184,22 +184,22 @@ define(['SplashScreen', 'process/process', 'process/data'], function(splashScree
 									'allowedValues': []
 								};
 
-								// the input data
-								var	complexOutput = input.getElementsByTagName('ComplexOutput');
+								// the output data
+								var	complexOutput = output.getElementsByTagName('ComplexOutput');
 
 								if(complexOutput.length > 0) {
 									complexOutput = complexOutput[0];
 
 									var Default = complexOutput.getElementsByTagName('Default'),
-										supported = complexData.getElementsByTagName('Supported');
+										supported = complexOutput.getElementsByTagName('Supported');
 										
-									outputData['type'] = 'ComplexOutput';
+									outputData['type'] = 'ComplexData';
 									if(Default.length > 0) {
 										Default = Default[0];
 
 										var formats = Default.getElementsByTagName('Format');
 										if(formats.length > 0) {
-											inputData['defaultValue'] = parseFormatMimeType(formats[0])
+											outputData['defaultValue'] = parseFormatMimeType(formats[0])
 										}
 									}
 
@@ -208,13 +208,13 @@ define(['SplashScreen', 'process/process', 'process/data'], function(splashScree
 
 										var formats = supported.getElementsByTagName('Format');
 										for(var k=0, l=formats.length; k<l; k++) {
-											inputData['allowedValues'].push(parseFormatMimeType(formats[k]));
+											outputData['allowedValues'].push(parseFormatMimeType(formats[k]));
 										}
 									}										
 								}
 							}
 
-							this._processes[identifier].addOuput(new ProcessData(inputData));
+							this._processes[identifier].addOuput(new ProcessData(outputData));
 						}
 					}
 

@@ -1,4 +1,9 @@
-define(['SVG', 'svg/svg.draggable'], function(SVG) {
+define([
+	'SVG', 
+	'process/data', 
+	'popup/confirm', 
+	'svg/svg.draggable'
+], function(SVG, Data, PopupConfirm) {
 	// the current draw
 	var draw;
 	
@@ -14,29 +19,21 @@ define(['SVG', 'svg/svg.draggable'], function(SVG) {
 	var BOX_STROKE_COLOR = 'black';
 	var BOX_SELECTED_COLOR = '#0193FE';
 	var LINE_DIRECTION_RADIUS = 6;
-	
-	var getRandomColor = (function() {
-		var letters = '0123456789ABCDEF'.split('');
 		
-		return function() {
-			var color = '#';
-			for (var i = 0; i < 6; i++ ) {
-				color += letters[Math.round(Math.random() * 15)];
-			}
-			return color;
-		}
-	})();
-			
 	function Box(x, y, process) {
 		this._selected = false;
 
 		if(arguments.length >= 3) {
 			this._process = process;
 			this._name = process.getDisplayName() || 'Container';
-			var inputs = process.getInputs();
-		
+			
+			// intputs and outputs
+			var inputs = process.getInputs(),
+				outputs = process.getOutputs();
+
 			var self = this;
 					
+			// the container
 			this._group = draw.group();
 			
 			// set the box name
@@ -46,23 +43,90 @@ define(['SVG', 'svg/svg.draggable'], function(SVG) {
 			var height = BOX_HEIGHT * (inputs.length + 2);
 			var width = 20 + text.bbox().width;
 			
-			// circle for inputs
+			// circle for inputs and outputs
 			var inputGroup = draw.group();
-			for(var i=0, j=inputs.length; i<j; i++) {
+			var outputGroup = draw.group();
+
+			$(inputs).each(function(i, input) {
 				var circle = draw.circle(LINE_DIRECTION_RADIUS)
 					.move(-LINE_DIRECTION_RADIUS/2, (BOX_HEIGHT * (i + 2)) - (LINE_DIRECTION_RADIUS/2));
 
-				var textProcess = draw.text(inputs[i].getDisplayName()),
+				var textProcess = draw.text(input.getDisplayName()),
 					textBBox = textProcess.bbox();
 				textProcess.move(LINE_DIRECTION_RADIUS, circle.bbox().cy + (LINE_DIRECTION_RADIUS / 2) - textBBox.height);
 
+				// add line if we are drawing one or add an inputbox
+				textProcess.click(function() {
+					// add line if we are drawing one
+					if(drawingLine) {
+						// check if the data are compatibles
+						var outputDataType = drawingLine._process.getOutputs()[0].getType();
+
+						// TODO: We asume that the output is always a ComplexData
+						if(outputDataType === input.getType()) {
+							var startBBox = drawingLine._group.bbox(),
+								endBBox = self._group.bbox(),
+								x1 = startBBox.x + startBBox.width - LINE_DIRECTION_RADIUS / 2,
+								y1 = startBBox.y + BOX_HEIGHT + (startBBox.height - BOX_HEIGHT) / 2 + LINE_DIRECTION_RADIUS / 2,
+								x2 = endBBox.x,
+								y2 = endBBox.y + BOX_HEIGHT + (BOX_HEIGHT * (i + 1));
+
+							var line = draw.line(x1, y1, x2, y2).stroke({ width: 1 });
+
+							drawingLine._group.remember('lines-start').push(line);
+							self._group.remember('lines-end').push(line);
+
+							drawingLine = null;
+						} else {
+							alert("Types incompatibles... (" + outputDataType + ", " + input.getType() + ")");
+						}
+					} else {
+						PopupConfirm("Voulez-vous ajouter une littéral " + input.getType() + "?", function() {
+							var litteralBox = new LitteralBox(x, y, input.getType());
+						})
+					}
+				});
+
+				var canAcceptInput = function() {
+					if(drawingLine && drawingLine._process.getOutputs()[0].getType() === input.getType()) {
+						circle.attr({ fill: 'red' });
+						textProcess.attr({ fill: 'red' })
+					}
+				};
+
+				var setCircleColor = function() {
+					circle.attr({ fill: 'black' });
+					textProcess.attr({ fill: 'black' })
+				}
+
+				// set a color when enter in the box
+				circle.on('mouseenter', canAcceptInput);
+
+				textProcess.on('mouseenter', canAcceptInput);
+				
+				// remove the color when enter in the box
+				circle.on('mouseleave', setCircleColor);
+
+				textProcess.on('mouseleave', setCircleColor);
+
 				// add the input name and circle to the groups
-				this._group.add(textProcess);
+				self._group.add(textProcess);
 				inputGroup.add(circle);
 
 				// get the max with
 				width = Math.max(width, textBBox.width + 2 * LINE_DIRECTION_RADIUS);
+			});
+
+			// We suppose there is only 0 or 1 output
+			if(outputs.length > 0) {
+				var output = outputs[0];
+
+				var circle = draw.circle(LINE_DIRECTION_RADIUS)
+					.move(width - LINE_DIRECTION_RADIUS/2, BOX_HEIGHT * (1 + ((1 + inputs.length) / 2)));
+			
+				outputGroup.add(circle);
 			}
+
 
 			// the container
 			var boxContainer = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (height + 10) + 'L10,' + (height + 10) + 'L10,10')
@@ -89,18 +153,16 @@ define(['SVG', 'svg/svg.draggable'], function(SVG) {
 			this._group.add(text);
 			this._group.remember('inputes-circle', inputGroup);
 			this._group.add(inputGroup);
+			this._group.add(outputGroup);
 			
 			// move the group and set it draggable
 			this._group.move(x, y).attr('cursor', 'move').draggable();
 			
 			// select the box when we click on it
 			this._group.click(function() {
-				// the line end in the box
-				if(drawingLine) {
-					self.endLine();
-				} else {
+				if(!drawingLine) {
 					// the destination is not selected when we draw a line
-					self.select();
+					self.select();					
 				}
 			});
 			
@@ -168,52 +230,12 @@ define(['SVG', 'svg/svg.draggable'], function(SVG) {
 	
 	Box.setDraw = function(drawId) {
 		draw = SVG(drawId);
-		
-		var getGroupFromElement = function(el) {
-			if(el.type === 'g') {
-				return el;
-			} else if(el.parent) {
-				return getGroupFromElement(el.parent);
-			} else {
-				return;
-			}
-		}	
-	
-		// move the line as the mouse does
-		draw.on('mousemove', function(e) {
-			if(drawingLine) {
-				drawingLine.attr('x2', e.offsetX).attr('y2', e.offsetY);
-				
-				if(!Box.isSelectedBox(e.target) && e.target.id !== draw.node.id) {
-					var element = getGroupFromElement(SVG.get(e.target.id));
-					
-					if(element) {	
-						var inputGroup = element.remember('inputes-circle');
-						var bbox = element.bbox();
-						
-						if(inputGroup && inputGroup.children().length > 0) {
-							var inputs = inputGroup.children(),
-								minY = Math.abs(bbox.y + inputs[0].attr('cy') - e.offsetY),
-								minIndex = 0;
-								
-							for(var i=1, j=inputs.length; i<j; i++) {
-								if(minY > Math.abs(bbox.y + inputs[i].attr('cy') - e.offsetY)) {
-									minY = Math.abs(bbox.y + inputs[i].attr('cy') - e.offsetY);
-									minIndex = i;
-								}
-							}
-							
-							drawingLine.attr('x2', bbox.x).attr('y2', bbox.y + inputs[minIndex].attr('cy'));
-						}
-					}
-				} 
-			}
-		});
-		
+			
 		// unselect the selected box when we click on the draw
 		draw.on('click', function(e) {
 			if(e.target.id === draw.node.id) {
 				Box.unselect();
+				drawingLine = null;
 			}
 		});
 	}
@@ -288,20 +310,7 @@ define(['SVG', 'svg/svg.draggable'], function(SVG) {
 	
 	Box.prototype.startLine = function() {
 		if(this._group) {
-			var bbox = this._group.bbox();
-			var line = draw.line(bbox.x + bbox.width, bbox.y + BOX_HEIGHT + (bbox.height-BOX_HEIGHT)/2, bbox.cx, bbox.cy)
-				.stroke({ width: 1 });
-				
-			// remember the line
-			var lines = this._group.remember('lines-start');
-			lines.push(line);
-			this._group.remember('lines-start', lines);
-			
-			// set the id of the starting box
-			line.remember('start', this._group.node.id);
-
-			// we have now a drawing line
-			drawingLine = line;
+			drawingLine = this;
 		}
 	};
 	
@@ -391,6 +400,131 @@ define(['SVG', 'svg/svg.draggable'], function(SVG) {
 	Box.prototype.getSVGBox = function() {
 		return this._group;
 	}
+
+
+	function LitteralBox(x, y, type) {
+		this._type = type;
+
+		var self = this;
+
+		// create a process with just one output
+		this._process = {
+			_outputs: [],
+			getOutputs: function() {
+				return this._outputs;
+			},
+			addOutput: function(output) {
+				this._outputs.push(output);
+			}
+		};
+
+		this._process.addOutput(new Data({
+			displayName: type,
+			minOccurs: 1,
+			maxOccurs: 1,
+			type: type
+		}));
+					
+		// the container
+		this._group = draw.group();
+
+		// set the box name
+		var text = draw.text(this._type);
+			
+		// get height and width for the box container
+		var height = BOX_HEIGHT * 3; // 1 output
+		var width = 20 + 100; // space for input element
+			
+		// circle for inputs and outputs
+		var outputGroup = draw.group();
+
+		// We suppose there is only 0 or 1 output
+		var circle = draw.circle(LINE_DIRECTION_RADIUS)
+			.move(width - LINE_DIRECTION_RADIUS / 2, BOX_HEIGHT * 2);
+	
+		outputGroup.add(circle);
+
+		// the container
+		var boxContainer = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (height + 10) + 'L10,' + (height + 10) + 'L10,10')
+			.attr({ 
+				'fill': 'none',
+				'stroke': BOX_STROKE_COLOR,
+				'stroke-width': 1
+			});
 		
+		// the header
+		var boxHeader = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (BOX_HEIGHT + 10) + 'L10,' + (BOX_HEIGHT + 10) + 'L10,10')
+			.attr({ 
+				'fill': 'none',
+				'stroke': BOX_STROKE_COLOR,
+				'stroke-width': 1
+			});
+
+		// center the text
+		text.move((width - text.bbox().width) / 2, 0);
+
+		// add everything to the group	
+		this._group.add(boxContainer);
+		this._group.add(boxHeader);
+		this._group.add(text);
+		this._group.remember('outputs-circle', outputGroup);
+		this._group.add(outputGroup);
+			
+		// move the group and set it draggable
+		this._group.move(x, y).attr('cursor', 'move').draggable();
+		
+		// select the box when we click on it
+		this._group.click(function() {
+			if(!drawingLine) {
+				// the destination is not selected when we draw a line
+				self.select();					
+			}
+		});
+
+		// set a color when enter in the box
+		this._group.on('mouseenter', function(e) {
+			self.setStrokeColor(BOX_SELECTED_COLOR);
+		});
+		
+		// remove the color when enter in the box
+		this._group.on('mouseleave', function(e) {
+			if(!self.isSelected()) {
+				self.setStrokeColor(BOX_STROKE_COLOR);
+			}
+		});
+
+		// remember the lines we linked to this box
+		this._group.remember('lines-start', []);
+			
+		// remember the start and end of the line
+		this._group.dragstart = function() {
+			var linesStart = this.remember('lines-start'),
+				i, j, l
+			
+			for(i=0, j=linesStart.length; i<j; i++) {
+				l = linesStart[i];
+				
+				l.remember('start-x', l.attr('x1'));
+				l.remember('start-y', l.attr('y1'));
+			}
+		}
+			
+		// move the line
+		this._group.dragmove = function(delta, event) {
+			var linesStart = this.remember('lines-start'),
+				i, j, l, x, y, circle;
+			
+			for(i=0, j=linesStart.length; i<j; i++) {
+				l = linesStart[i],
+				x = l.remember('start-x') + delta.x,
+				y = l.remember('start-y') + delta.y;
+					
+				l.attr('x1', x).attr('y1', y);
+			}
+		}
+	}
+
+	LitteralBox.prototype = new Box();
+
 	return Box;
 });

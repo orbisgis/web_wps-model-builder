@@ -12,6 +12,7 @@ define([], function() {
 		this._maxOccurs = data.maxOccurs || 1;
 		this._type = data.type || '';
 		this._defaultValue = data.defaultValue || '';
+		this._value = this._defaultValue;
 
 		// if this is empty then all values are availables
 		this._allowedValues =  data.allowedValues || [];
@@ -19,6 +20,24 @@ define([], function() {
 
 	Data.prototype.getDisplayName = function() {
 		return this._displayName;
+	}
+
+	Data.prototype.getType = function() {
+		return this._type;
+	}
+
+	Data.prototype.getAllowedValues = function() {
+		return this._allowedValues;
+	}
+
+	Data.prototype.setValue = function(value) {
+		this._value = value;
+
+		return this;
+	}
+
+	Data.prototype.getValue = function() {
+		return this._value;
 	}
 
 	Data.prototype.toString = function() {
