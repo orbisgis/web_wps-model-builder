@@ -1,4 +1,18 @@
-define(['jquery', 'WPS/WPSManager', 'process/box'], function($, WPSManager, Box) {
+/**
+ * Config file for requireJs
+ */
+requirejs.config({
+	paths: {
+		'underscore': 'vendor/underscore',
+		'jquery': 'vendor/jquery-2.0.3.min',
+		'SVG': 'svg/SVG'
+	}
+});
+
+/**
+ * Main module
+ */
+require(['jquery', 'WPS/WPSManager', 'process/box'], function($, WPSManager, Box) {
 	// DOM elements
 	var $addFilter = $('#add-filter'),
 		$deleteFilter = $('#delete-filter'),

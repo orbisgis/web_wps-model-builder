@@ -1,26 +1,17 @@
-<?php
-	/* 
-	 * A changer si le dossier porte un autre nom.
-	 * On est pas obligé de faire ce système mais j'aime avoir les chemins 
-	 * absolues plutôt que relatif dans mes fichiers.
-	 */
-	$prefix_adresse = '/wps/';
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
 		<title>WPS</title>
 		
-		<link href="<?php echo $prefix_adresse ?>assets/css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="./assets/css/bootstrap.min.css" rel="stylesheet" media="screen">
 		
 		<style>
 			#svg-container {
 				border: 1px solid rgb(202, 202, 202); 
 				overflow: hidden; 
 				background-color: white; 
-				background-image: url(<?php echo $prefix_adresse ?>assets/img/grid.gif); 
+				background-image: url(./assets/img/grid.gif); 
 				width: 800px; 
 				height: 400px;
 			};
@@ -48,14 +39,6 @@
 
 		<div id="splash-screen"></div>
 		
-		<script data-main="assets/js/main" src="<?php echo $prefix_adresse ?>assets/js/require.js"></script>
-		<script>
-			requirejs.config({
-				paths: {
-					'jquery': 'jquery/jquery-2.0.3.min',
-					'SVG': 'svg/SVG'
-				}
-			});
-		</script>
+		<script data-main="assets/js/app" src="./assets/js/require.js"></script>
 	</body>
 </html>
