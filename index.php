@@ -1,4 +1,9 @@
 <?php
+	/* 
+	 * A changer si le dossier porte un autre nom.
+	 * On est pas obligé de faire ce système mais j'aime avoir les chemins 
+	 * absolues plutôt que relatif dans mes fichiers.
+	 */
 	$prefix_adresse = '/wps/';
 ?>
 

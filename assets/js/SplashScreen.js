@@ -1,7 +1,5 @@
 define(['jquery'], function($) {
-	var $splash = $('#splash-screen'),
-		lastHide, timeOut, 
-		MIN_TIME = 1000;
+	var $splash = $('#splash-screen');
 
 	$splash.css({
 		'position': 'absolute', 
@@ -18,18 +16,10 @@ define(['jquery'], function($) {
 
 	var show = function(text) {
 		$splash.text(text ? text : 'Wait...').show();
-		lastHide = +(new Date);
-		clearTimeout(timeOut);
 	}
 
 	var hide = function() {
-		var current = +(new Date);
-
-		if(current > lastHide + MIN_TIME) {
-			$splash.text('').hide();
-		} else {
-			setTimeout(hide, MIN_TIME - current - lastHide)
-		}
+		$splash.text('').hide();
 	}
 
 	$(window).on('splash-screen-wait', function(e) {

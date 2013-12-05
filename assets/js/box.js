@@ -2,8 +2,9 @@ define([
 	'SVG', 
 	'process/data', 
 	'popup/confirm', 
+	'popup/input',
 	'svg/svg.draggable'
-], function(SVG, Data, PopupConfirm) {
+], function(SVG, Data, PopupConfirm, PopupInput) {
 	// the current draw
 	var draw;
 	
@@ -463,13 +464,35 @@ define([
 		// center the text
 		text.move((width - text.bbox().width) / 2, 0);
 
+		// the input element
+		var valueRect = draw.rect(100, BOX_HEIGHT)
+			.attr({
+				'rx': 2,
+				'ry': 2,
+				'stroke-width': 1,
+				'stroke': BOX_SELECTED_COLOR,
+				'fill': 'white'
+			}).move(LINE_DIRECTION_RADIUS, BOX_HEIGHT * 1.5);
+		
+		var valueText = draw.text('<Cliquez>').move(LINE_DIRECTION_RADIUS * 2, BOX_HEIGHT * 1.5);
+		var fnEditValue = function() {
+			PopupInput(valueText.text(), function(value) {
+				valueText.text(value);
+			})
+		};
+
+		valueRect.click(fnEditValue);
+		valueText.click(fnEditValue);
+
 		// add everything to the group	
 		this._group.add(boxContainer);
 		this._group.add(boxHeader);
 		this._group.add(text);
 		this._group.remember('outputs-circle', outputGroup);
 		this._group.add(outputGroup);
-			
+		this._group.add(valueRect);
+		this._group.add(valueText);
+
 		// move the group and set it draggable
 		this._group.move(x, y).attr('cursor', 'move').draggable();
 		
