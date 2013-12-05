@@ -1,10 +1,9 @@
 define([
 	'SVG', 
 	'process/data', 
-	'popup/confirm', 
-	'popup/input',
+	'popup/popup', 
 	'svg/svg.draggable'
-], function(SVG, Data, PopupConfirm, PopupInput) {
+], function(SVG, Data, Popup) {
 	// the current draw
 	var draw;
 	
@@ -79,10 +78,10 @@ define([
 
 							drawingLine = null;
 						} else {
-							alert("Types incompatibles... (" + outputDataType + ", " + input.getType() + ")");
+							Popup.notification("Types incompatibles... (" + outputDataType + ", " + input.getType() + ")");
 						}
 					} else {
-						PopupConfirm("Voulez-vous ajouter une littéral " + input.getType() + "?", function() {
+						Popup.confirm("Voulez-vous ajouter une littéral " + input.getType() + "?", function() {
 							var litteralBox = new LitteralBox(x, y, input.getType());
 						})
 					}
@@ -476,7 +475,7 @@ define([
 		
 		var valueText = draw.text('<Cliquez>').move(LINE_DIRECTION_RADIUS * 2, BOX_HEIGHT * 1.5);
 		var fnEditValue = function() {
-			PopupInput(valueText.text(), function(value) {
+			Popup.input(valueText.text(), function(value) {
 				valueText.text(value);
 			})
 		};

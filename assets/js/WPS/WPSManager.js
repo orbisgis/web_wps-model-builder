@@ -193,7 +193,7 @@ define(['SplashScreen', 'process/process', 'process/data'], function(splashScree
 									var Default = complexOutput.getElementsByTagName('Default'),
 										supported = complexOutput.getElementsByTagName('Supported');
 										
-									outputData['type'] = 'complexData';
+									outputData['type'] = 'ComplexData';
 									if(Default.length > 0) {
 										Default = Default[0];
 
