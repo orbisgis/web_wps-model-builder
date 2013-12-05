@@ -1,4 +1,8 @@
-define(['SplashScreen', 'process/process', 'process/data'], function(splashScreen, Process, ProcessData) {
+define([
+	'popup/SplashScreen', 
+	'process/process', 
+	'process/data'
+], function(splashScreen, Process, ProcessData) {
 	var proxyURL = '';
 
 	function WPSManager(url) {

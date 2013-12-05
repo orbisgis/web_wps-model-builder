@@ -1,4 +1,4 @@
-define(['box'], function(Box) {
+define(['process/box'], function(Box) {
 	
 	var uid = 1;
 

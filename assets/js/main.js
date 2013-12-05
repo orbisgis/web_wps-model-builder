@@ -1,4 +1,4 @@
-define(['jquery', 'WPS/WPSManager', 'box'], function($, WPSManager, Box) {
+define(['jquery', 'WPS/WPSManager', 'process/box'], function($, WPSManager, Box) {
 	// DOM elements
 	var $addFilter = $('#add-filter'),
 		$deleteFilter = $('#delete-filter'),
