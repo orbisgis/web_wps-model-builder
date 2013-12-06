@@ -3,9 +3,14 @@
  */
 requirejs.config({
 	paths: {
-		'underscore': 'vendor/underscore',
+		'underscore': 'vendor/underscore-min',
 		'jquery': 'vendor/jquery-2.0.3.min',
 		'SVG': 'svg/SVG'
+	},
+	shim: {
+		underscore: {
+	      exports: '_'
+	    }
 	}
 });
 

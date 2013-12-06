@@ -28,7 +28,7 @@ define(['process/box'], function(Box) {
 		return this._outputs;
 	}
 
-	Process.prototype.addOuput = function(outpout) {
+	Process.prototype.addOutput = function(outpout) {
 		this._outputs.push(outpout);
 
 		return this;
