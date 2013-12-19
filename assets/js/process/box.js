@@ -127,7 +127,6 @@ define([
 				outputGroup.add(circle);
 			}
 
-
 			// the container
 			var boxContainer = draw.path('M10,10L' + (width + 10) + ',10L' + (width + 10) + ',' + (height + 10) + 'L10,' + (height + 10) + 'L10,10')
 				.attr({ 
@@ -475,7 +474,7 @@ define([
 		
 		var valueText = draw.text('<Cliquez>').move(LINE_DIRECTION_RADIUS * 2, BOX_HEIGHT * 1.5);
 		var fnEditValue = function() {
-			Popup.input(valueText.text(), function(value) {
+			Popup.input("Entrer votre valeur", valueText.text(), function(value) {
 				valueText.text(value);
 			})
 		};

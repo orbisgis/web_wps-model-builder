@@ -1,7 +1,11 @@
 define([], function() {
-	return function(defaultValue, callback) {
-		var value = prompt("Entrer votre valeur", defaultValue);
+	return function(message, defaultValue, callback) {
+		var value = prompt(message, defaultValue);
 		
-		callback(value);
+		if(value && callback) {
+			callback(value);
+		}
+
+		return value;
 	}
 })

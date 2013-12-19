@@ -1,0 +1,4 @@
+[
+	"http://localhost:8080/geoserver/ows?service=WPS&version=1.0.0",
+	"http://geowww.agrocampus-ouest.fr/cgi-bin/hswps.cgi?service=wps&request=DescribeProcess&version=1.0.0&identifier=infomaille"
+]

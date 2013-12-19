@@ -1,21 +1,65 @@
 define([
+	'module',
 	'jquery',
 	'underscore',
 	'WPS/WPSParser',
 	'popup/SplashScreen', 
 	'process/process', 
 	'process/data'
-], function($, _, WPSParser, splashScreen, Process, ProcessData) {
-	var proxyURL = '';
+], function(module, $, _, WPSParser, splashScreen, Process, ProcessData) {
+	var proxyURL = module.config()['url-proxy'];
+	var DEFAULT_VERSION = '1.0.0';
+	var DEFAULT_SERVICE = 'WPS';
+
+	function getQueryParams(qs) {
+	    qs = qs.split("+").join(" ");
+
+	    var params = {}, 
+	    	tokens,
+	        re = /[?&]?([^=]+)=([^&]*)/g;
+
+	    while (tokens = re.exec(qs)) {
+	        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+	    }
+
+	    return params;
+	}
 
 	function WPSManager(url) {
-		this._url = url;
+		// check the url
+		var a = document.createElement('a');
+		a.href = url;
+
+		this._hostname = a.hostname;
+
+		// create the correct url
+		this._url = a.protocol + '//' + a.hostname + ':' + a.port + a.pathname;
+
+		// get parameters from url
+		var args = url.substring(this._url.length),
+			params = getQueryParams(args);
+
+		// get parameters we need
+		this._params = {
+			'version': params['version'] || DEFAULT_VERSION,
+			'service': params['service'] || DEFAULT_SERVICE
+		};
 
 		this._processes;
 	}
 
-	WPSManager.setProxyURL = function(url) {
-		proxyURL = url;
+	WPSManager.prototype.getHostname = function() {
+		return this._hostname;
+	}
+
+	WPSManager.prototype.getURL = function(args) {
+		var url = [];
+
+		_.each(_.extend(this._params, args), function(value, key, list) {
+			url.push(key + "=" + value);
+		});
+
+		return proxyURL.replace('{url}', escape(this._url + '?' + url.join('&')));
 	}
 
 	WPSManager.prototype.getCapabilities = function(callback) {
@@ -23,11 +67,13 @@ define([
 			// show the splash screen 
 			splashScreen.show('GetCapabilities: ' + this._url);
 			// create the URL
-			var url = escape(this._url + '&request=GetCapabilities');
+			var url = this.getURL({
+				'request': 'GetCapabilities'
+			});
 			// call the URL
 			$.ajax({
 				type: 'GET',
-				url: proxyURL + url,
+				url: url,
 				dataType: 'xml',
 				context: this,
 				success: function(data) {
@@ -54,13 +100,16 @@ define([
 	}
 
 	WPSManager.prototype.describeProcess = function(identifier, callback) {
-		if(this._processes && this._processes[identifier] && !this._processes[identifier].isReady) {
+		if(this._processes && this._processes[identifier]) {
 			splashScreen.show('DescribeProcess: ' + identifier);
-			var url = escape(this._url + '&request=DescribeProcess&identifier=' + identifier);
+			var url = this.getURL({
+				'request': 'DescribeProcess',
+				'identifier': identifier
+			});
 
 			$.ajax({
 				type: 'GET',
-				url: proxyURL + url,
+				url: url,
 				dataType: 'xml',
 				context: this,
 				success: function(data) {					
