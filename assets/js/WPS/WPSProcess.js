@@ -1,12 +1,19 @@
-define(['process/process'], function(Process) {
+define([
+	'process/process',
+	'WPS/WPSBox'
+], function(Process, WPSBox) {
 
 	function WPSProcess() {
-		this._name = process.title;
-		this._box;
-		this._inputs = process.inputs
+		Process.apply(this, arguments)
 	}
 	
-	WPSProcess.prototype = new Process()
+	WPSProcess.prototype = new Process();
 
-	return ProcessWPS;
+	WPSProcess.prototype.render = function() {
+		this._box = new WPSBox(20, 20, this);
+
+		return this;
+	}
+
+	return WPSProcess;
 });

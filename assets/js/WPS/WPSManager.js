@@ -4,9 +4,8 @@ define([
 	'underscore',
 	'WPS/WPSParser',
 	'popup/SplashScreen', 
-	'process/process', 
-	'process/data'
-], function(module, $, _, WPSParser, splashScreen, Process, ProcessData) {
+	'WPS/WPSProcess'
+], function(module, $, _, WPSParser, splashScreen, WPSProcess) {
 	var proxyURL = module.config()['url-proxy'];
 	var DEFAULT_VERSION = '1.0.0';
 	var DEFAULT_SERVICE = 'WPS';
@@ -45,6 +44,10 @@ define([
 			'service': params['service'] || DEFAULT_SERVICE
 		};
 
+		// save rendered processes
+		this._renderedProcesses = {};
+
+		// save processes
 		this._processes;
 	}
 
@@ -83,7 +86,7 @@ define([
 					this._processes = {};
 					_.each(capabilities.processOfferings, function(process) {
 						if(process && process.identifier) {
-							this._processes[process.identifier] = new Process(process);
+							this._processes[process.identifier] = process;
 						}
 					}, this);
 
@@ -115,13 +118,8 @@ define([
 				success: function(data) {					
 					var description = WPSParser.parseDescribeProcess(data.firstChild);
 
-					_.each(description.dataInputs, function(inputData) {
-						this._processes[identifier].addInput(new ProcessData(inputData));
-					}, this);
-
-					_.each(description.processOutputs, function(outputData) {
-						this._processes[identifier].addOutput(new ProcessData(outputData));
-					}, this);
+					this._processes[identifier].inputData = description.dataInputs;
+					this._processes[identifier].outputData = description.processOutputs;
 
 					splashScreen.hide();
 					callback(this._processes[identifier]);
@@ -142,6 +140,19 @@ define([
 	WPSManager.prototype.getProcess = function(identifier) {
 		return this._processes[identifier];
 	}
+
+	WPSManager.prototype.renderProcess = function(identifier) {
+		if(this._processes[identifier]) {
+			var process = new WPSProcess(this._processes[identifier]);
+			this._renderedProcesses[process.getUID()] = process;
+
+			process.render();
+		}
+	};
+
+	WPSManager.prototype.getRenderedProcesses = function() {
+		return this._renderedProcesses;
+	};
 
 	return WPSManager;
 });

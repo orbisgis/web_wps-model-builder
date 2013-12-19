@@ -7,7 +7,8 @@ define([
 	var wpsServers = module.config()['wps-server'],
 		$el = $('#list-serveurs'),
 		$processDescription = $('#process-description');
-
+	
+	
 	function WPSServers() {
 		this._servers = {};
 
@@ -59,7 +60,7 @@ define([
 								'data-identifier': identifier,
 								'data-servername': hostname
 							});
-							$processDescription.append('<h3>' + process.getDisplayName() + '</h3>');
+							$processDescription.append('<h3>' + process.displayName + '</h3>');
 
 						} else {
 							alert("Une erreur est survenue pendant la récupération du processus " + identifier);
@@ -71,7 +72,7 @@ define([
 					var process = processes[identifier];
 
 					$listProcess.append(
-						'<option data-identifier="' + identifier + '">' + process.getDisplayName() + '</option>');
+						'<option data-identifier="' + identifier + '">' + process.displayName + '</option>');
 				}	
 			} else {
 				alert("Une erreur est survenue pendant la récupération des processus");
@@ -84,6 +85,79 @@ define([
 	WPSServers.prototype.getServer = function(serverName) {
 		return this._servers[serverName];
 	}
+
+	var WPSC_ROOT_NODE = "<wpschaining></wpschaining>",
+		
+		WPSC_SERVER_LIST = "wpsservers",
+		WPSC_SERVER_NODE = "server",
+		WPSC_SERVER_ID = 'id',
+		WPSC_SERVER_VERSION = "version",
+		WPSC_SERVER_SERVICE = "service",
+
+		WPSC_PROCESS_LIST = "wpsprocesses",
+		WPSC_PROCESS_NODE = "process",
+		WPSC_PROCESS_ID = "id",
+		WPSC_PROCESS_WPS_ID = "identifier",
+		WPSC_PROCESS_SERVER_ID = "serverid",
+
+		WPSC_LITTERAL_LIST = "wpslitterals",
+		WPSC_LITTERAL_NODE = "litteral",
+		
+		WPSC_LINK_LIST = "wpslinks",
+		WPSC_LINK_NODE = "link",
+		WPSC_LINK_ID = "id",
+		WPSC_LINK_PROCESS_INPUT = "processinput",
+		WPSC_LINK_PROCESS_INPUT_ID = "processinputid",
+		WPSC_LINK_PROCESS_OUTPUT = "processoutput";
+
+	WPSServers.prototype.save = function() {
+		// save the servers and the rendered boxes
+		var parser = new DOMParser(),
+			xmlDoc = parser.parseFromString(WPSC_ROOT_NODE, "text/xml"),
+			root = xmlDoc.children[0];
+
+		var wpsServers = xmlDoc.createElement(WPSC_SERVER_LIST),
+			wpsProcesses = xmlDoc.createElement(WPSC_PROCESS_LIST),
+			wpsLitterals = xmlDoc.createElement(WPSC_LITTERAL_LIST),
+			wpsLinks = xmlDoc.createElement(WPSC_LINK_LIST);
+
+		root.appendChild(wpsServers);
+		root.appendChild(wpsProcesses);
+		root.appendChild(wpsLitterals);
+		root.appendChild(wpsLinks);
+
+		_.each(this._servers, function(serverManager, key) {
+			// create server node
+			var server = xmlDoc.createElement(WPSC_SERVER_NODE);
+			server.setAttribute(WPSC_SERVER_ID, key);
+			server.setAttribute(WPSC_SERVER_VERSION, serverManager._params['version']);
+			server.setAttribute(WPSC_SERVER_SERVICE, serverManager._params['service']);
+			server.appendChild(xmlDoc.createTextNode(serverManager._url));
+			wpsServers.appendChild(server);
+
+			// parse each process rendered to this server
+			_.each(serverManager.getRenderedProcesses(), function(processManager, id) {
+				var process = xmlDoc.createElement(WPSC_PROCESS_NODE);
+				process.setAttribute(WPSC_PROCESS_ID, id);
+				process.setAttribute(WPSC_PROCESS_SERVER_ID, key);
+				process.setAttribute(WPSC_PROCESS_WPS_ID, processManager._identifier);
+				wpsProcesses.appendChild(process);
+
+				// parse each process output
+				_.each(processManager.getOutputs(), function(outputData) {
+					_.each(outputData.getLinks(), function(outputLink) {
+						var link = xmlDoc.createElement(WPSC_LINK_NODE);
+						link.setAttribute(WPSC_LINK_PROCESS_OUTPUT, id);
+						link.setAttribute(WPSC_LINK_PROCESS_INPUT, outputLink.process);
+						link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, outputLink.data);	
+						wpsLinks.appendChild(link);
+					});
+				});
+			});
+		});
+
+		console.log(new XMLSerializer().serializeToString(xmlDoc));
+	};
 
 	return WPSServers;
 })

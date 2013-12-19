@@ -1,28 +1,48 @@
-define(['process/box'], function(Box) {
+define([
+	'process/data'
+], function(ProcessData) {
 	
 	var uid = 1;
 
 	function getUniqueProcessIdentifier() {
-		return 'process-' + (uid++ + +(new Date)).toString(36);
+		return 'process-' + (uid++).toString(36);
 	}
 
 	function Process(process) {
-		this._identifier = process.identifier || getUniqueProcessIdentifier();
+		process = process || {};
+
+		this._uid = getUniqueProcessIdentifier();
+		this._identifier = process.identifier || this._uid;
 		this._displayName = process.displayName || this._identifier;
-		this._box;
 		this._inputs = [];
 		this._outputs = [];
+
+		if(process.inputData) {
+			_.each(process.inputData, function(inputData) {
+				this._inputs.push(new ProcessData(inputData));
+			}, this);
+		}
+
+		if(process.outputData) {
+			_.each(process.outputData, function(outputData) {
+				this._outputs.push(new ProcessData(outputData));
+			}, this);
+		}		
 	}
+
+	Process.prototype.getUID = function() {
+		return this._uid;
+	};
 
 	Process.prototype.getInputs = function() {
 		return this._inputs;
-	}
+	};
 
 	Process.prototype.addInput = function(input) {
 		this._inputs.push(input);
 
 		return this;
-	}
+	};
 	
 	Process.prototype.getOutputs = function() {
 		return this._outputs;
@@ -45,8 +65,6 @@ define(['process/box'], function(Box) {
 	}
 
 	Process.prototype.render = function() {
-		this._box = new Box(20, 20, this);
-
 		return this;
 	}
 

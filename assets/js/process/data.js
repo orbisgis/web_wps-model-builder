@@ -2,12 +2,13 @@ define([], function() {
 
 	var uid = 1;
 	function getUniqueProcessIdentifier() {
-		return 'data-' + (uid++ + +(new Date)).toString(36);
+		return 'data-' + (uid++).toString(36);
 	}
 
 	function Data(data) {
+		this._uid = getUniqueProcessIdentifier();
+		this._identifier = data.identifier || this._uid;
 		this._displayName = data.displayName || data.identifier;
-		this._identifier = data.identifier || getUniqueProcessIdentifier();
 		this._minOccurs = data.minOccurs || 0;
 		this._maxOccurs = data.maxOccurs || 1;
 		this._type = data.type || '';
@@ -16,6 +17,8 @@ define([], function() {
 
 		// if this is empty then all values are availables
 		this._allowedValues =  data.allowedValues || [];
+
+		this._links = [];
 	}
 
 	Data.prototype.getDisplayName = function() {
@@ -38,6 +41,21 @@ define([], function() {
 
 	Data.prototype.getValue = function() {
 		return this._value;
+	}
+
+	Data.prototype.addLink = function(data, process) {
+		this._links.push({
+			data: data.getUID(),
+			process: process.getUID()
+		});
+	};
+
+	Data.prototype.getLinks = function() {
+		return this._links;
+	}
+
+	Data.prototype.getUID = function() {
+		return this._uid;
 	}
 
 	Data.prototype.toString = function() {

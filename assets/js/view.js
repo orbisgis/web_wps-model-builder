@@ -5,7 +5,7 @@ define([
 	'module',
 	'jquery', 
 	'WPS/WPSServers', 
-	'process/box',
+	'process/Box',
 	'popup/popup'
 ], function(module, $, WPSServers, Box, Popup) {
 	return {
@@ -16,7 +16,8 @@ define([
 				$addLink = $('#add-link'),
 				$selectedBoxSpan = $('#selected-box'),
 				$processDescription = $('#process-description'),
-				$addServer = $('#add-server');
+				$addServer = $('#add-server'),
+				$saveProcesses = $('#save-processes');
 
 			// set constants for objects
 			Box.setDraw('svg-container');
@@ -32,7 +33,7 @@ define([
 				
 				if(server) {
 					// add the box to the boxes list
-					server.getProcess(identifier).render();
+					server.renderProcess(identifier);
 				}
 			});
 			
@@ -51,6 +52,10 @@ define([
 					servers.addServer(url);
 				}
 			});
+
+			$saveProcesses.click(function() {
+				servers.save();
+			})
 			
 			$(window).on('unselect-box', function(e) {
 				$selectedBoxSpan.text('<nothing>');

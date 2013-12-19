@@ -24,7 +24,12 @@ requirejs.config({
  [ ] Export vers un fichier XML
  [ ] Hover sur le titre du input pour afficher le type
  [ ] afficher info du point de sortie
- [ ] Bug buffer x 2
+ [ ] Bug buffer x2
+ [ ] Meilleur gestion des littéraux (string-choice, xs:...)
+ [ ] Vérifier le minOccurs/maxOccurs
+ [ ] Supprimer process et pas que les box!
+ [ ] Vérifier qu'un serveur n'apparait pas deux fois dans la liste
+ [ ] Dépédance de SVG problématique
 */
 
 /**
