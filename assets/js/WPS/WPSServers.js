@@ -2,8 +2,9 @@ define([
 	'module',
 	'jquery',
 	'underscore',
-	'WPS/WPSManager'
-], function(module, $, _, WPSManager) {
+	'WPS/WPSManager',
+	'litteral/LitteralManager'
+], function(module, $, _, WPSManager, LitteralManager) {
 	var wpsServers = module.config()['wps-server'],
 		$el = $('#list-serveurs'),
 		$processDescription = $('#process-description');
@@ -102,12 +103,14 @@ define([
 
 		WPSC_LITTERAL_LIST = "wpslitterals",
 		WPSC_LITTERAL_NODE = "litteral",
+		WPSC_LITTERAL_ID = "id",
+		WPSC_LITTERAL_TYPE = "type",
 		
 		WPSC_LINK_LIST = "wpslinks",
 		WPSC_LINK_NODE = "link",
 		WPSC_LINK_ID = "id",
 		WPSC_LINK_PROCESS_INPUT = "processinput",
-		WPSC_LINK_PROCESS_INPUT_ID = "processinputid",
+		WPSC_LINK_PROCESS_INPUT_ID = "processinputidentifier",
 		WPSC_LINK_PROCESS_OUTPUT = "processoutput";
 
 	WPSServers.prototype.save = function() {
@@ -125,6 +128,18 @@ define([
 		root.appendChild(wpsProcesses);
 		root.appendChild(wpsLitterals);
 		root.appendChild(wpsLinks);
+
+		var getInputDataFromId = _.bind(function(dataId) {
+			var data;
+			_.find(_.values(this._servers), function(server) { 
+				return _.find(_.values(server.getRenderedProcesses()), function(process) {
+					data = process.getInput(dataId);
+					return data
+				});
+			});
+
+			return data;
+		}, this);
 
 		_.each(this._servers, function(serverManager, key) {
 			// create server node
@@ -146,12 +161,39 @@ define([
 				// parse each process output
 				_.each(processManager.getOutputs(), function(outputData) {
 					_.each(outputData.getLinks(), function(outputLink) {
+						var inputData = getInputDataFromId(outputLink.data);
+
+						if(inputData) {
+							var link = xmlDoc.createElement(WPSC_LINK_NODE);
+							link.setAttribute(WPSC_LINK_PROCESS_OUTPUT, id);
+							link.setAttribute(WPSC_LINK_PROCESS_INPUT, outputLink.process);
+							link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, inputData.getIndentifier());	
+							wpsLinks.appendChild(link);
+						}
+					});
+				});
+			});
+		});
+
+		_.each(LitteralManager.getLitterals(), function(litteralProcess, id) {
+			var litteral = xmlDoc.createElement(WPSC_LITTERAL_NODE);
+			litteral.setAttribute(WPSC_SERVER_ID, id);
+			litteral.setAttribute(WPSC_LITTERAL_ID, litteralProcess.getUID());
+			litteral.setAttribute(WPSC_LITTERAL_TYPE, litteralProcess.getType());
+			litteral.appendChild(xmlDoc.createTextNode(litteralProcess.getValue()));
+			wpsLitterals.appendChild(litteral);
+
+			_.each(litteralProcess.getOutputs(), function(outputData) {
+				_.each(outputData.getLinks(), function(outputLink) {
+					var inputData = getInputDataFromId(outputLink.data);
+
+					if(inputData) {
 						var link = xmlDoc.createElement(WPSC_LINK_NODE);
 						link.setAttribute(WPSC_LINK_PROCESS_OUTPUT, id);
 						link.setAttribute(WPSC_LINK_PROCESS_INPUT, outputLink.process);
-						link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, outputLink.data);	
+						link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, inputData.getIndentifier());	
 						wpsLinks.appendChild(link);
-					});
+					}
 				});
 			});
 		});

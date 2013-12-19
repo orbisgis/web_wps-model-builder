@@ -21,6 +21,10 @@ define([], function() {
 		this._links = [];
 	}
 
+	Data.prototype.getIndentifier = function() {
+		return this._identifier;
+	}
+	
 	Data.prototype.getDisplayName = function() {
 		return this._displayName;
 	}

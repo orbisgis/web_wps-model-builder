@@ -23,6 +23,20 @@ define([
 
 		return this;
 	}
+
+	LitteralProcess.prototype.getType = function() {
+		return this.getOutputs()[0].getType();
+	}
+	
+	LitteralProcess.prototype.setValue = function(value) {
+		this.getOutputs()[0].setValue(value);
+
+		return this;
+	}
+
+	LitteralProcess.prototype.getValue = function() {
+		return this.getOutputs()[0].getValue();
+	};
 	
 	return LitteralProcess;
 });

@@ -34,6 +34,10 @@ define([
 		return this._uid;
 	};
 
+	Process.prototype.getInput = function(dataId) {
+		return _.find(this._inputs, function(data) { return data.getUID() === dataId});
+	}
+
 	Process.prototype.getInputs = function() {
 		return this._inputs;
 	};
@@ -44,6 +48,10 @@ define([
 		return this;
 	};
 	
+	Process.prototype.getOutput = function(dataId) {
+		return _.find(this._outputs, function(data) { return data.getUID() === dataId});
+	}
+
 	Process.prototype.getOutputs = function() {
 		return this._outputs;
 	}

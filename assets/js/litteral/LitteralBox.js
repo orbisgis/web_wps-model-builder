@@ -1,7 +1,8 @@
 define([
 	'SVG', 
-	'process/Box'
-], function(SVG, Box) {
+	'process/Box',
+	'popup/popup'
+], function(SVG, Box, Popup) {
 
 	// constants
 	var BOX_WIDTH = 50;
@@ -70,6 +71,7 @@ define([
 		var fnEditValue = function() {
 			Popup.input("Entrer votre valeur", valueText.text(), function(value) {
 				valueText.text(value);
+				process.setValue(value);
 			})
 		};
 
