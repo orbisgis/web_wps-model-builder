@@ -17,11 +17,11 @@ define([
 
 		if(arguments.length >= 3) {
 			this._process = process;
-			this._name = process.getDisplayName() || 'Container';
+			this._name = process.get('displayName') || 'Container';
 			
 			// intputs and outputs
-			var inputs = process.getInputs(),
-				outputs = process.getOutputs();
+			var inputs = process.get('inputs'),
+				outputs = process.get('outputs');
 
 			var self = this;
 					
@@ -43,7 +43,7 @@ define([
 				var circle = self._draw.circle(LINE_DIRECTION_RADIUS)
 					.move(-LINE_DIRECTION_RADIUS/2, (BOX_HEIGHT * (i + 2)) - (LINE_DIRECTION_RADIUS/2));
 
-				var textProcess = self._draw.text(input.getDisplayName()),
+				var textProcess = self._draw.text(input.get('displayName')),
 					textBBox = textProcess.bbox();
 				textProcess.move(LINE_DIRECTION_RADIUS, circle.bbox().cy + (LINE_DIRECTION_RADIUS / 2) - textBBox.height);
 
@@ -53,11 +53,11 @@ define([
 					// add line if we are drawing one
 					if(drawingLine) {
 						// check if the data are compatibles
-						var outputData = drawingLine._process.getOutputs()[0],
-							outputDataType = outputData.getType();
+						var outputData = drawingLine._process.get('outputs')[0],
+							outputDataType = outputData.get('type');
 
 						// TODO: We asume that the output is always a ComplexData
-						if(outputDataType === input.getType()) {
+						if(input.canReceive(outputDataType)) {
 							var startBBox = drawingLine._group.bbox(),
 								endBBox = self._group.bbox(),
 								x1 = startBBox.x + startBBox.width - LINE_DIRECTION_RADIUS / 2,
@@ -77,20 +77,24 @@ define([
 							// we are done drawing the line
 							self.endLine();
 						} else {
-							Popup.notification("Types incompatibles... (" + outputDataType + ", " + input.getType() + ")");
+							if(outputDataType !== input.get('type')) {
+								Popup.notification("Types incompatibles [" + outputDataType + ", " + input.get('type') + "]");
+							} else {
+								Popup.notification(input.get('displayName') + " est limitée à " + input.get('maxOccurs') + " entrée.");
+							}
 						}
 					} else {
-						Popup.confirm("Voulez-vous ajouter une littéral " + input.getType() + "?", function() {
-							LitteralManager.addLitteral(input.getType());
+						Popup.confirm("Voulez-vous ajouter une littéral " + input.get('type') + "?", function() {
+							LitteralManager.addLitteral(input.get('type'));
 						})
 					}
 				});
 
 				var canAcceptInput = function() {
 					var drawingLine = self.getDrawingLine();
-					if(drawingLine && drawingLine._process.getOutputs()[0].getType() === input.getType()) {
+					if(drawingLine && input.canReceive(drawingLine._process.get('outputs')[0].get('type'))) {
 						circle.attr({ fill: 'red' });
-						textProcess.attr({ fill: 'red' })
+						textProcess.attr({ fill: 'red' });
 					}
 				};
 
@@ -101,12 +105,10 @@ define([
 
 				// set a color when enter in the box
 				circle.on('mouseenter', canAcceptInput);
-
 				textProcess.on('mouseenter', canAcceptInput);
 				
 				// remove the color when enter in the box
 				circle.on('mouseleave', setCircleColor);
-
 				textProcess.on('mouseleave', setCircleColor);
 
 				// add the input name and circle to the groups

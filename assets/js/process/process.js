@@ -1,46 +1,39 @@
 define([
+	'underscore',
+	'process/Model',
 	'process/data'
-], function(ProcessData) {
+], function(_, Model, ProcessData) {
 	
-	var uid = 1;
-
-	function getUniqueProcessIdentifier() {
-		return 'process-' + (uid++).toString(36);
-	}
-
 	function Process(process) {
 		process = process || {};
-
-		this._uid = getUniqueProcessIdentifier();
-		this._identifier = process.identifier || this._uid;
-		this._displayName = process.displayName || this._identifier;
-		this._inputs = [];
-		this._outputs = [];
+		
+		this._uid = _.uniqueId('process_');
+		this.attributes = {
+			uid: this._uid,
+			identifier: process.identifier || this._uid,
+			displayName: process.displayName || process.identifier || this._uid,
+			inputs: [],
+			outputs: []
+		}
 
 		if(process.inputData) {
 			_.each(process.inputData, function(inputData) {
-				this._inputs.push(new ProcessData(inputData));
+				this.attributes.inputs.push(new ProcessData(inputData));
 			}, this);
 		}
 
 		if(process.outputData) {
 			_.each(process.outputData, function(outputData) {
-				this._outputs.push(new ProcessData(outputData));
+				this.attributes.outputs.push(new ProcessData(outputData));
 			}, this);
 		}		
 	}
 
-	Process.prototype.getUID = function() {
-		return this._uid;
-	};
+	Process.prototype = new Model();
 
 	Process.prototype.getInput = function(dataId) {
-		return _.find(this._inputs, function(data) { return data.getUID() === dataId});
+		return _.find(this._inputs, function(data) { return data.get('uid') === dataId});
 	}
-
-	Process.prototype.getInputs = function() {
-		return this._inputs;
-	};
 
 	Process.prototype.addInput = function(input) {
 		this._inputs.push(input);
@@ -49,25 +42,11 @@ define([
 	};
 	
 	Process.prototype.getOutput = function(dataId) {
-		return _.find(this._outputs, function(data) { return data.getUID() === dataId});
-	}
-
-	Process.prototype.getOutputs = function() {
-		return this._outputs;
+		return _.find(this._outputs, function(data) { return data.get('uid') === dataId});
 	}
 
 	Process.prototype.addOutput = function(outpout) {
 		this._outputs.push(outpout);
-
-		return this;
-	}
-	
-	Process.prototype.getDisplayName = function() {
-		return this._displayName;
-	}
-
-	Process.prototype.setDisplayName = function(displayName) {
-		this._displayName = displayName;
 
 		return this;
 	}

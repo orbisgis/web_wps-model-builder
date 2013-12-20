@@ -1,14 +1,9 @@
 define([
-	'SVG', 
+	'SVG',
+	'underscore', 
+	'process/Events',
 	'svg/svg.draggable'
-], function(SVG) {
-
-
-	function Box() {
-		this._selected = false;	
-		this._draw = Box._draw;
-	}
-
+], function(SVG, _, Events) {
 	// the current draw
 	Box._draw;
 
@@ -17,6 +12,17 @@ define([
 
 	// the line we are drawing
 	var drawingLine;
+
+	function Box() {
+		this._selected = false;	
+		this._draw = Box._draw;
+
+		Box.listenTo(this, 'select-box', _.bind(function() { Box.trigger('select-box', this); }, this));
+		Box.listenTo(this, 'unselect-box', _.bind(function() { Box.trigger('unselect-box', this); }, this));
+	}
+
+	_.extend(Box, Events);
+	_.extend(Box.prototype, Events);
 
 	Box.getDraw = function() {
 		return Box._draw;
@@ -32,6 +38,10 @@ define([
 			}
 		});
 	}
+
+	Box.prototype.getProcess = function() {
+		return this._process;
+	};
 
 	Box.prototype.startLine = function() {
 		drawingLine = this;
@@ -55,7 +65,7 @@ define([
 		
 		this.onSelected();
 		
-		window.dispatchEvent(new Event('select-box'));
+		this.trigger('select-box');
 
 		return this;
 	}
@@ -72,7 +82,7 @@ define([
 			
 			this.onUnselected();
 
-			window.dispatchEvent(new Event('unselect-box'));
+			this.trigger('unselect-box');
 		}
 
 		return this;

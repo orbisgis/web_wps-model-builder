@@ -2,157 +2,119 @@ define([
 	'module',
 	'jquery',
 	'underscore',
-	'WPS/WPSParser',
-	'popup/SplashScreen', 
-	'WPS/WPSProcess'
-], function(module, $, _, WPSParser, splashScreen, WPSProcess) {
-	var proxyURL = module.config()['url-proxy'];
-	var DEFAULT_VERSION = '1.0.0';
-	var DEFAULT_SERVICE = 'WPS';
+	'WPS/WPSServer',
+	'WPS/WPSDumper',
+	'litteral/LitteralManager',
+	'popup/popup'
+], function(module, $, _, WPSServer, WPSDumper, LitteralManager, Popup) {
+	var $el = $('#list-serveurs'),
+		$processDescription = $('#process-description');
+	
+	var _servers = {};
 
-	function getQueryParams(qs) {
-	    qs = qs.split("+").join(" ");
+	// fetch servers known by the application
+	var fetchServers = function() {
+		var wpsServers = module.config()['wps-server'];
 
-	    var params = {}, 
-	    	tokens,
-	        re = /[?&]?([^=]+)=([^&]*)/g;
-
-	    while (tokens = re.exec(qs)) {
-	        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
-	    }
-
-	    return params;
-	}
-
-	function WPSManager(url) {
-		// check the url
-		var a = document.createElement('a');
-		a.href = url;
-
-		this._hostname = a.hostname;
-
-		// create the correct url
-		this._url = a.protocol + '//' + a.hostname + ':' + a.port + a.pathname;
-
-		// get parameters from url
-		var args = url.substring(this._url.length),
-			params = getQueryParams(args);
-
-		// get parameters we need
-		this._params = {
-			'version': params['version'] || DEFAULT_VERSION,
-			'service': params['service'] || DEFAULT_SERVICE
-		};
-
-		// save rendered processes
-		this._renderedProcesses = {};
-
-		// save processes
-		this._processes;
-	}
-
-	WPSManager.prototype.getHostname = function() {
-		return this._hostname;
-	}
-
-	WPSManager.prototype.getURL = function(args) {
-		var url = [];
-
-		_.each(_.extend(this._params, args), function(value, key, list) {
-			url.push(key + "=" + value);
-		});
-
-		return proxyURL.replace('{url}', escape(this._url + '?' + url.join('&')));
-	}
-
-	WPSManager.prototype.getCapabilities = function(callback) {
-		if(!this._processes) {
-			// show the splash screen 
-			splashScreen.show('GetCapabilities: ' + this._url);
-			// create the URL
-			var url = this.getURL({
-				'request': 'GetCapabilities'
-			});
-			// call the URL
+		if(wpsServers) {
 			$.ajax({
 				type: 'GET',
-				url: url,
-				dataType: 'xml',
+				url: wpsServers,
 				context: this,
+				dataType: 'json',
 				success: function(data) {
-					// get processes
-					var capabilities = WPSParser.parseGetCapabilities(data.firstChild);
-				
-					this._processes = {};
-					_.each(capabilities.processOfferings, function(process) {
-						if(process && process.identifier) {
-							this._processes[process.identifier] = process;
-						}
+					_.each(data, function(serverURL) {
+						this.addServer(serverURL);
 					}, this);
-
-					// hide the splash screen
-					splashScreen.hide();
-					// call the callback function
-					callback(this._processes);
 				},
 				error: function() {
-					callback();
-				}	
+					// fail silently
+				}
 			});
+		}		
+	};
+
+	var addServer = function(url) {
+		var server = new WPSServer(url),
+			hostname = server.getHostname();
+
+		if(_servers[hostname]) {
+			Popup.notification("Le serveur " + hostname + " est déjà présent.");
+			return;
 		}
-	}
 
-	WPSManager.prototype.describeProcess = function(identifier, callback) {
-		if(this._processes && this._processes[identifier]) {
-			splashScreen.show('DescribeProcess: ' + identifier);
-			var url = this.getURL({
-				'request': 'DescribeProcess',
-				'identifier': identifier
-			});
+		var $container = $('<div></div>'),
+			$title = $('<p>' + hostname + '</p>'),
+			$listProcess = $('<select></select>');
 
-			$.ajax({
-				type: 'GET',
-				url: url,
-				dataType: 'xml',
-				context: this,
-				success: function(data) {					
-					var description = WPSParser.parseDescribeProcess(data.firstChild);
+		// append elements to the DOM
+		$container.append($title).append($listProcess);
+		$el.append($container);
 
-					this._processes[identifier].inputData = description.dataInputs;
-					this._processes[identifier].outputData = description.processOutputs;
+		$listProcess.hide();
+		$title.click(function() {
+			$listProcess.toggle();
+		})
 
-					splashScreen.hide();
-					callback(this._processes[identifier]);
-				},
-				error: function(e) {
-					callback();
+		server.getCapabilities(function(processes) {
+			if(processes) {
+				$listProcess.on('change', function() {
+					var identifier = $listProcess.find('option:selected').attr('data-identifier');
+
+					server.describeProcess(identifier, function(process) {
+						if(process) {
+							$processDescription.html('');
+							$processDescription.attr({
+								'data-identifier': identifier,
+								'data-servername': hostname
+							});
+							$processDescription.append('<h3>' + process.displayName + '</h3>');
+
+						} else {
+							alert("Une erreur est survenue pendant la récupération du processus " + identifier);
+						}
+					});
+				});
+
+				for(var identifier in processes) {
+					var process = processes[identifier];
+
+					$listProcess.append(
+						'<option data-identifier="' + identifier + '">' + process.displayName + '</option>');
 				}	
-			});
-		} else {
-			callback();
-		}
-	}
+			} else {
+				alert("Une erreur est survenue pendant la récupération des processus");
+			}
+		});
 
-	WPSManager.prototype.getProcesses = function() {
-		return this._processes;
-	}
+		_servers[hostname] = server;
+	};
 
-	WPSManager.prototype.getProcess = function(identifier) {
-		return this._processes[identifier];
-	}
+	var getServer = function(serverName) {
+		return _servers[serverName];
+	};
 
-	WPSManager.prototype.renderProcess = function(identifier) {
-		if(this._processes[identifier]) {
-			var process = new WPSProcess(this._processes[identifier]);
-			this._renderedProcesses[process.getUID()] = process;
+	var deleteProcess = function(process) {
+		var server = _.find(_servers, function(s, key) {
+			return s.getRenderedProcesses()[process.get('uid')];
+		});
 
-			process.render();
+		if(server) {
+			server.deleteProcess(process);
 		}
 	};
 
-	WPSManager.prototype.getRenderedProcesses = function() {
-		return this._renderedProcesses;
+	var save = function() {
+		var xml = WPSDumper.dump(_servers);
+
+		console.log(new XMLSerializer().serializeToString());
 	};
 
-	return WPSManager;
+	return {
+		addServer: addServer,
+		fetchServers: fetchServers,
+		getServer: getServer,
+		deleteProcess: deleteProcess,
+		save: save
+	};	
 });

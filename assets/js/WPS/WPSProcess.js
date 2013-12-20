@@ -1,5 +1,5 @@
 define([
-	'process/process',
+	'process/Process',
 	'WPS/WPSBox'
 ], function(Process, WPSBox) {
 
@@ -10,9 +10,7 @@ define([
 	WPSProcess.prototype = new Process();
 
 	WPSProcess.prototype.render = function() {
-		this._box = new WPSBox(20, 20, this);
-
-		return this;
+		return this.set('box', new WPSBox(20, 20, this));
 	}
 
 	return WPSProcess;

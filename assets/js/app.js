@@ -8,10 +8,10 @@ requirejs.config({
 		'SVG': 'svg/SVG'
 	},
 	config: {
-		'WPS/WPSManager': {
+		'WPS/WPSServer': {
 			'url-proxy': 'http://localhost/wps/lib/proxy.php?url={url}',
 		},
-		'WPS/WPSServers': {
+		'WPS/WPSManager': {
 			'wps-server': 'http://localhost/wps/lib/serveurs.json'
 		}
 	}
@@ -20,16 +20,19 @@ requirejs.config({
 
 /**
  TODO: 
- [x] Ajout des serveurs
- [ ] Export vers un fichier XML
+ [x] Ajouter des serveurs
+ [x] Export vers un fichier XML
  [ ] Hover sur le titre du input pour afficher le type
  [ ] afficher info du point de sortie
- [ ] Bug buffer x2
+ [x] Bug buffer x2
  [ ] Meilleur gestion des littéraux (string-choice, xs:...)
- [ ] Vérifier le minOccurs/maxOccurs
- [ ] Supprimer process et pas que les box!
- [ ] Vérifier qu'un serveur n'apparait pas deux fois dans la liste
- [ ] Dépédance de SVG problématique
+ [x] Vérifier le minOccurs/maxOccurs
+ [x] Supprimer process et pas que les box!
+ [ ] Supprimer les litteraux
+ [x] Vérifier qu'un serveur n'apparait pas deux fois dans la liste
+ [ ] Enlever la dépendance DOM dans WPSManager
+ [ ] Dépendance de SVG problématique
+ [x] Utiliser les Events Backbone
 */
 
 /**

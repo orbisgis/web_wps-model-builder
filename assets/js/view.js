@@ -4,10 +4,10 @@
 define([
 	'module',
 	'jquery', 
-	'WPS/WPSServers', 
+	'WPS/WPSManager', 
 	'process/Box',
 	'popup/popup'
-], function(module, $, WPSServers, Box, Popup) {
+], function(module, $, WPSManager, Box, Popup) {
 	return {
 		render: function() {
 			// DOM elements
@@ -21,15 +21,12 @@ define([
 
 			// set constants for objects
 			Box.setDraw('svg-container');
-
-			// set URLs from module config
-			//WPSManager.setProxyURL();
-			var servers = new WPSServers();
+			WPSManager.fetchServers();
 
 			$addFilter.click(function(e) {	
 				var identifier = $processDescription.attr('data-identifier'),
 					serverName = $processDescription.attr('data-servername'),
-					server = servers.getServer(serverName);
+					server = WPSManager.getServer(serverName);
 				
 				if(server) {
 					// add the box to the boxes list
@@ -38,7 +35,11 @@ define([
 			});
 			
 			$deleteFilter.click(function() {
-				Box.getSelectedBox().remove();
+				var process = Box.getSelectedBox().getProcess();
+
+				if(process) {
+					WPSManager.deleteProcess(process);
+				}
 			});
 			
 			$addLink.click(function(e) {
@@ -49,20 +50,20 @@ define([
 				var url = Popup.input('URL du server :');
 
 				if(url) {
-					servers.addServer(url);
+					WPSServer.addServer(url);
 				}
 			});
 
 			$saveProcesses.click(function() {
-				servers.save();
+				WPSManager.save();
 			})
 			
-			$(window).on('unselect-box', function(e) {
+			Box.on('unselect-box', function(e) {
 				$selectedBoxSpan.text('<nothing>');
 			});
 			
-			$(window).on('select-box', function(e) {					
-				$selectedBoxSpan.text(Box.getSelectedBox().getId());
+			Box.on('select-box', function(box) {					
+				$selectedBoxSpan.text(box.getId());
 			});
 		}
 	}

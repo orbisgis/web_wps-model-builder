@@ -23,7 +23,7 @@ define([
 		this._group = this._draw.group();
 
 		// set the box name
-		var text = this._draw.text(this._process.getDisplayName());
+		var text = this._draw.text(this._process.get('displayName'));
 			
 		// get height and width for the box container
 		var height = BOX_HEIGHT * 3; // 1 output

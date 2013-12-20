@@ -1,5 +1,5 @@
 define([
-	'process/process',
+	'process/Process',
 	'litteral/LitteralBox'
 ], function(Process, LitteralBox) {
 	
@@ -19,23 +19,21 @@ define([
 	LitteralProcess.prototype = new Process();
 
 	LitteralProcess.prototype.render = function() {
-		this._box = new LitteralBox(20, 20, this);
-
-		return this;
+		return this.set('box', new LitteralBox(20, 20, this));
 	}
 
 	LitteralProcess.prototype.getType = function() {
-		return this.getOutputs()[0].getType();
+		return this.get('outputs')[0].getType();
 	}
-	
+
 	LitteralProcess.prototype.setValue = function(value) {
-		this.getOutputs()[0].setValue(value);
+		this.get('outputs')[0].setValue(value);
 
 		return this;
 	}
 
 	LitteralProcess.prototype.getValue = function() {
-		return this.getOutputs()[0].getValue();
+		return this.get('outputs')[0].getValue();
 	};
 	
 	return LitteralProcess;

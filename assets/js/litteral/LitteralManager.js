@@ -5,7 +5,7 @@ define([
 
 	var addLitteral = function(type) {
 		var process = new LitteralProcess(type);
-		_litterals[process.getUID()] = process;
+		_litterals[process.get('uid')] = process;
 		process.render();
 	};
 
