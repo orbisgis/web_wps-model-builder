@@ -25,13 +25,9 @@ define([
 
 			$addFilter.click(function(e) {	
 				var identifier = $processDescription.attr('data-identifier'),
-					serverName = $processDescription.attr('data-servername'),
-					server = WPSManager.getServer(serverName);
-				
-				if(server) {
-					// add the box to the boxes list
-					server.renderProcess(identifier);
-				}
+					serverName = $processDescription.attr('data-servername');
+
+				WPSManager.createProcess(serverName, identifier);
 			});
 			
 			$deleteFilter.click(function() {

@@ -1,4 +1,6 @@
-define([], function() {
+define([
+	'litteral/LitteralManager'
+], function(LitteralManager) {
 	var WPSC_ROOT_NODE = "<wpschaining></wpschaining>",
 		
 		WPSC_SERVER_LIST = "wpsservers",
@@ -25,7 +27,7 @@ define([], function() {
 		WPSC_LINK_PROCESS_INPUT_ID = "processinputidentifier",
 		WPSC_LINK_PROCESS_OUTPUT = "processoutput";
 
-	var dump = function(servers) {
+	var dump = function(servers, processes) {
 		var parser = new DOMParser(),
 			xmlDoc = parser.parseFromString(WPSC_ROOT_NODE, "text/xml"),
 			root = xmlDoc.children[0];
@@ -42,11 +44,9 @@ define([], function() {
 
 		var getInputDataFromId = _.bind(function(dataId) {
 			var data;
-			_.find(_.values(this._servers), function(server) { 
-				return _.find(_.values(server.getRenderedProcesses()), function(process) {
-					data = process.getInput(dataId);
-					return data
-				});
+			_.find(_.values(processes), function(process) {
+				data = process.getInput(dataId);
+				return data
 			});
 
 			return data;
@@ -55,33 +55,33 @@ define([], function() {
 		_.each(servers, function(server, key) {
 			// create server node
 			var serverNode = xmlDoc.createElement(WPSC_SERVER_NODE);
-			serverNode.setAttribute(WPSC_SERVER_ID, key);
-			serverNode.setAttribute(WPSC_SERVER_VERSION, server._params['version']);
-			serverNode.setAttribute(WPSC_SERVER_SERVICE, server._params['service']);
-			serverNode.appendChild(xmlDoc.createTextNode(server._url));
+			serverNode.setAttribute(WPSC_SERVER_ID, server.get('uid')); 
+			serverNode.setAttribute(WPSC_SERVER_VERSION, server.get('version'));
+			serverNode.setAttribute(WPSC_SERVER_SERVICE, server.get('service'));
+			serverNode.appendChild(xmlDoc.createTextNode(server.get('url')));
 			wpsServers.appendChild(serverNode);
+		});
 
-			// parse each process rendered to this server
-			_.each(server.getRenderedProcesses(), function(process, id) {
-				var processNode = xmlDoc.createElement(WPSC_PROCESS_NODE);
-				processNode.setAttribute(WPSC_PROCESS_ID, id);
-				processNode.setAttribute(WPSC_PROCESS_SERVER_ID, key);
-				processNode.setAttribute(WPSC_PROCESS_WPS_ID, process.get('identifier'));
-				wpsProcesses.appendChild(processNode);
+		// parse each process rendered to this server
+		_.each(processes, function(process, id) {
+			var processNode = xmlDoc.createElement(WPSC_PROCESS_NODE);
+			processNode.setAttribute(WPSC_PROCESS_ID, id);
+			processNode.setAttribute(WPSC_PROCESS_SERVER_ID, process.get('serverName'));
+			processNode.setAttribute(WPSC_PROCESS_WPS_ID, process.get('identifier'));
+			wpsProcesses.appendChild(processNode);
 
-				// parse each process output
-				_.each(process.get('outputs'), function(outputData) {
-					_.each(outputData.get('links'), function(outputLink) {
-						var inputData = getInputDataFromId(outputLink.data);
+			// parse each process output
+			_.each(process.get('outputs'), function(outputData) {
+				_.each(outputData.get('links'), function(outputLink) {
+					var inputData = getInputDataFromId(outputLink.data);
 
-						if(inputData) {
-							var link = xmlDoc.createElement(WPSC_LINK_NODE);
-							link.setAttribute(WPSC_LINK_PROCESS_OUTPUT, id);
-							link.setAttribute(WPSC_LINK_PROCESS_INPUT, outputLink.process);
-							link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, inputData.get('indentifier'));	
-							wpsLinks.appendChild(link);
-						}
-					});
+					if(inputData) {
+						var link = xmlDoc.createElement(WPSC_LINK_NODE);
+						link.setAttribute(WPSC_LINK_PROCESS_OUTPUT, id);
+						link.setAttribute(WPSC_LINK_PROCESS_INPUT, outputLink.process);
+						link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, inputData.get('identifier'));	
+						wpsLinks.appendChild(link);
+					}
 				});
 			});
 		});
@@ -102,7 +102,7 @@ define([], function() {
 						var link = xmlDoc.createElement(WPSC_LINK_NODE);
 						link.setAttribute(WPSC_LINK_PROCESS_OUTPUT, id);
 						link.setAttribute(WPSC_LINK_PROCESS_INPUT, outputLink.process);
-						link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, inputData.get('indentifier'));	
+						link.setAttribute(WPSC_LINK_PROCESS_INPUT_ID, inputData.get('identifier'));	
 						wpsLinks.appendChild(link);
 					}
 				});

@@ -32,21 +32,21 @@ define([
 	Process.prototype = new Model();
 
 	Process.prototype.getInput = function(dataId) {
-		return _.find(this._inputs, function(data) { return data.get('uid') === dataId});
+		return _.find(this.get('inputs'), function(data) { return data.get('uid') === dataId});
 	}
 
 	Process.prototype.addInput = function(input) {
-		this._inputs.push(input);
+		this.get('inputs').push(input);
 
 		return this;
 	};
 	
 	Process.prototype.getOutput = function(dataId) {
-		return _.find(this._outputs, function(data) { return data.get('uid') === dataId});
+		return _.find(this.get('outputs'), function(data) { return data.get('uid') === dataId});
 	}
 
 	Process.prototype.addOutput = function(outpout) {
-		this._outputs.push(outpout);
+		this.get('outputs').push(outpout);
 
 		return this;
 	}

@@ -2,10 +2,11 @@ define([
 	'module',
 	'jquery',
 	'underscore',
+	'process/Model',
 	'WPS/WPSParser',
 	'popup/SplashScreen', 
 	'WPS/WPSProcess'
-], function(module, $, _, WPSParser, splashScreen, WPSProcess) {
+], function(module, $, _, Model, WPSParser, splashScreen, WPSProcess) {
 	var proxyURL = module.config()['url-proxy'];
 	var DEFAULT_VERSION = '1.0.0';
 	var DEFAULT_SERVICE = 'WPS';
@@ -29,48 +30,44 @@ define([
 		var a = document.createElement('a');
 		a.href = url;
 
-		this._hostname = a.hostname;
-
-		// create the correct url
-		this._url = a.protocol + '//' + a.hostname + ':' + a.port + a.pathname;
-
-		// get parameters from url
-		var args = url.substring(this._url.length),
+		var url = a.protocol + '//' + a.hostname + ':' + a.port + a.pathname,
+			args = url.substring(url.length),
 			params = getQueryParams(args);
 
-		// get parameters we need
-		this._params = {
-			'version': params['version'] || DEFAULT_VERSION,
-			'service': params['service'] || DEFAULT_SERVICE
+		this.attributes = {
+			uid: _.uniqueId('server_'),
+			hostname: a.hostname,
+			url: url,
+			version: params['version'] || DEFAULT_VERSION,
+			service: params['service'] || DEFAULT_SERVICE,
+			processes: {},
+			ready: false
 		};
-
-		// save rendered processes
-		this._renderedProcesses = {};
-
-		// save processes
-		this._processes;
 	}
 
-	WPSServer.prototype.getHostname = function() {
-		return this._hostname;
-	}
+	WPSServer.prototype = new Model();
 
-	WPSServer.prototype.getURL = function(args) {
+	WPSServer.prototype.createURL = function(args) {
 		var url = [];
 
-		_.each(_.extend(this._params, args), function(value, key, list) {
-			url.push(key + "=" + value);
-		});
+		_.each(
+			_.extend({ 
+				version: this.get('version'), 
+				service: this.get('service')
+			}, args), 
+			function(value, key, list) {
+				url.push(key + "=" + value);
+			});
 
-		return proxyURL.replace('{url}', escape(this._url + '?' + url.join('&')));
+		return proxyURL.replace('{url}', escape(this.get('url') + '?' + url.join('&')));
 	}
 
 	WPSServer.prototype.getCapabilities = function(callback) {
-		if(!this._processes) {
+		if(!this.get('ready')) {
 			// show the splash screen 
 			splashScreen.show('GetCapabilities: ' + this._url);
 			// create the URL
-			var url = this.getURL({
+			var url = this.createURL({
 				'request': 'GetCapabilities'
 			});
 			// call the URL
@@ -81,19 +78,22 @@ define([
 				context: this,
 				success: function(data) {
 					// get processes
-					var capabilities = WPSParser.parseGetCapabilities(data.firstChild);
+					var processes = this.get('processes'),
+						capabilities = WPSParser.parseGetCapabilities(data.firstChild);
 				
-					this._processes = {};
 					_.each(capabilities.processOfferings, function(process) {
 						if(process && process.identifier) {
-							this._processes[process.identifier] = process;
+							processes[process.identifier] = process;
+							process['ready'] = false;
 						}
 					}, this);
 
 					// hide the splash screen
 					splashScreen.hide();
+					// the server is ready
+					this.set('ready', true);
 					// call the callback function
-					callback(this._processes);
+					callback(processes);
 				},
 				error: function() {
 					callback();
@@ -103,9 +103,14 @@ define([
 	}
 
 	WPSServer.prototype.describeProcess = function(identifier, callback) {
-		if(this._processes && this._processes[identifier]) {
+		if(!this.get('ready')) {
+			callback();
+			return;
+		}
+
+		if(!this.getProcess(identifier).ready) {
 			splashScreen.show('DescribeProcess: ' + identifier);
-			var url = this.getURL({
+			var url = this.createURL({
 				'request': 'DescribeProcess',
 				'identifier': identifier
 			});
@@ -116,52 +121,37 @@ define([
 				dataType: 'xml',
 				context: this,
 				success: function(data) {					
-					var description = WPSParser.parseDescribeProcess(data.firstChild);
+					var process = this.getProcess(identifier),
+						description = WPSParser.parseDescribeProcess(data.firstChild);
 
-					this._processes[identifier].inputData = description.dataInputs;
-					this._processes[identifier].outputData = description.processOutputs;
+					process.inputData = description.dataInputs;
+					process.outputData = description.processOutputs;
 
 					splashScreen.hide();
-					callback(this._processes[identifier]);
+					process['ready'] = true;
+					callback(process);
 				},
 				error: function(e) {
 					callback();
 				}	
 			});
 		} else {
-			callback();
+			callback(this.getProcess(identifier));
 		}
-	}
-
-	WPSServer.prototype.getProcesses = function() {
-		return this._processes;
 	}
 
 	WPSServer.prototype.getProcess = function(identifier) {
-		return this._processes[identifier];
+		return this.get('processes')[identifier];
 	}
 
-	WPSServer.prototype.renderProcess = function(identifier) {
-		if(this._processes[identifier]) {
-			var process = new WPSProcess(this._processes[identifier]);
-			this._renderedProcesses[process.get('uid')] = process;
+	WPSServer.prototype.createProcess = function(identifier) {
+		if(this.getProcess(identifier)) {
+			var process = new WPSProcess(this.getProcess(identifier));
+			process.set('serverName', this.get('uid'));
 
-			process.render();
+			return process; 
 		}
 	};
-
-	WPSServer.prototype.getRenderedProcesses = function() {
-		return this._renderedProcesses;
-	};
-
-	WPSServer.prototype.deleteProcess = function(process) {
-		if(this._renderedProcesses[process.get('uid')]) {
-			var box = process.get('box');
-			box.remove();
-			process.clear();
-			delete this._renderedProcesses[process];
-		}
-	}
 
 	return WPSServer;
 });

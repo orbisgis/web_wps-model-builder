@@ -33,6 +33,7 @@ requirejs.config({
  [ ] Enlever la dépendance DOM dans WPSManager
  [ ] Dépendance de SVG problématique
  [x] Utiliser les Events Backbone
+ [x] Utiliser uid du WPSServer au lieu de son hostname
 */
 
 /**
