@@ -18,6 +18,9 @@ define([
 				$processDescription = $('#process-description'),
 				$addServer = $('#add-server'),
 				$saveProcesses = $('#save-processes');
+		
+			var $listServers = $('#list-serveurs'),
+				$processDescription = $('#process-description');
 
 			// set constants for objects
 			Box.setDraw('svg-container');
@@ -60,6 +63,51 @@ define([
 			
 			Box.on('select-box', function(box) {					
 				$selectedBoxSpan.text(box.getId());
+			});
+
+			WPSManager.on('get-capabilities', function(server, processes) {
+				if(processes) {
+					var $container = $('<div></div>'),
+						$title = $('<p>' + server.get('hostname') + '</p>'),
+						$listProcess = $('<select></select>');
+
+					// append elements to the DOM
+					$container.append($title).append($listProcess);
+					$listServers.append($container);
+
+					$listProcess.hide();
+					$title.click(function() {
+						$listProcess.toggle();
+					})		
+
+					$listProcess.on('change', function() {
+						var identifier = $listProcess.find('option:selected').attr('data-identifier');
+
+						WPSManager.getProcessInfos(server.get('uid'), identifier);
+					});
+
+					for(var identifier in processes) {
+						var process = processes[identifier];
+
+						$listProcess.append(
+							'<option data-identifier="' + identifier + '">' + process.displayName + '</option>');
+					}	
+				} else {
+					Popup.notification("Une erreur est survenue pendant la récupération des processus");
+				}
+			});
+
+			WPSManager.on('describe-process', function(server, identifier, process) {
+				if(process) {
+					$processDescription.html('');
+					$processDescription.attr({
+						'data-identifier': identifier,
+						'data-servername': server.get('uid')
+					});
+					$processDescription.append('<h3>' + process.displayName + '</h3>');
+				} else {
+					Popup.notification("Une erreur est survenue pendant la récupération du processus " + identifier);
+				}
 			});
 		}
 	}

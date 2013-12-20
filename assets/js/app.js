@@ -30,7 +30,7 @@ requirejs.config({
  [x] Supprimer process et pas que les box!
  [ ] Supprimer les litteraux
  [x] Vérifier qu'un serveur n'apparait pas deux fois dans la liste
- [ ] Enlever la dépendance DOM dans WPSManager
+ [x] Enlever la dépendance DOM dans WPSManager
  [ ] Dépendance de SVG problématique
  [x] Utiliser les Events Backbone
  [x] Utiliser uid du WPSServer au lieu de son hostname

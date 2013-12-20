@@ -8,9 +8,6 @@ define([
 	'litteral/LitteralManager',
 	'popup/popup'
 ], function(module, $, _, Events, WPSServer, WPSDumper, LitteralManager, Popup) {
-	var $el = $('#list-serveurs'),
-		$processDescription = $('#process-description');
-	
 	var _servers = {};
 	var _renderedProcesses = {};
 
@@ -49,51 +46,21 @@ define([
 				return;
 			}
 
-			var $container = $('<div></div>'),
-				$title = $('<p>' + hostname + '</p>'),
-				$listProcess = $('<select></select>');
-
-			// append elements to the DOM
-			$container.append($title).append($listProcess);
-			$el.append($container);
-
-			$listProcess.hide();
-			$title.click(function() {
-				$listProcess.toggle();
-			})
-
 			server.getCapabilities(function(processes) {
-				if(processes) {
-					$listProcess.on('change', function() {
-						var identifier = $listProcess.find('option:selected').attr('data-identifier');
-
-						server.describeProcess(identifier, function(process) {
-							if(process) {
-								$processDescription.html('');
-								$processDescription.attr({
-									'data-identifier': identifier,
-									'data-servername': server.get('uid')
-								});
-								$processDescription.append('<h3>' + process.displayName + '</h3>');
-
-							} else {
-								alert("Une erreur est survenue pendant la récupération du processus " + identifier);
-							}
-						});
-					});
-
-					for(var identifier in processes) {
-						var process = processes[identifier];
-
-						$listProcess.append(
-							'<option data-identifier="' + identifier + '">' + process.displayName + '</option>');
-					}	
-				} else {
-					alert("Une erreur est survenue pendant la récupération des processus");
-				}
+				WPSManager.trigger('get-capabilities', server, processes);
 			});
 
 			_servers[serverUID] = server;
+		},
+
+		getProcessInfos: function(serverName, identifier) {
+			var server = _servers[serverName];
+
+			if(server) {
+				server.describeProcess(identifier, function(process) {
+					WPSManager.trigger('describe-process', server, identifier, process);
+				});		
+			}
 		},
 
 		createProcess: function(serverName, identifier) {
@@ -130,7 +97,7 @@ define([
 		}		
 	}
 	
-	_.extend(WPSManager, Event);
+	_.extend(WPSManager, Events);
 
 	return WPSManager;	
 });
