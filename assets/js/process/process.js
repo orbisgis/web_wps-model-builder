@@ -1,8 +1,8 @@
 define([
 	'underscore',
 	'process/Model',
-	'process/data'
-], function(_, Model, ProcessData) {
+	'process/Data'
+], function(_, Model, Data) {
 	
 	function Process(process) {
 		process = process || {};
@@ -18,13 +18,13 @@ define([
 
 		if(process.inputData) {
 			_.each(process.inputData, function(inputData) {
-				this.attributes.inputs.push(new ProcessData(inputData));
+				this.attributes.inputs.push(new Data(inputData));
 			}, this);
 		}
 
 		if(process.outputData) {
 			_.each(process.outputData, function(outputData) {
-				this.attributes.outputs.push(new ProcessData(outputData));
+				this.attributes.outputs.push(new Data(outputData));
 			}, this);
 		}		
 	}
