@@ -1,10 +1,11 @@
 define([
 	'SVG', 
 	'process/Box',
+	'process/Tooltip',
 	'litteral/LitteralManager',
 	'popup/popup', 
 	'svg/svg.draggable'
-], function(SVG, Box, LitteralManager, Popup) {	
+], function(SVG, Box, Tooltip, LitteralManager, Popup) {	
 	// constants
 	var BOX_WIDTH = 50;
 	var BOX_HEIGHT = 25;
@@ -90,7 +91,17 @@ define([
 					}
 				});
 
-				var canAcceptInput = function() {
+				var onMouseEnter = function() {
+					var bbox = self._group.bbox();
+					Tooltip.show(bbox.x + bbox.width + 10, bbox.y, {
+						displayName: input.get('displayName'),
+						type: input.get('type'),
+						defaultValue: input.get('defaultValue'),
+						minOccurs: input.get('minOccurs'),
+						maxOccurs: input.get('maxOccurs'),
+						allowedValues: input.get('allowedValues')
+					});
+					
 					var drawingLine = self.getDrawingLine();
 					if(drawingLine && input.canReceive(drawingLine._process.get('outputs')[0].get('type'))) {
 						circle.attr({ fill: 'red' });
@@ -98,18 +109,19 @@ define([
 					}
 				};
 
-				var setCircleColor = function() {
+				var onMouseLeave = function() {
+					Tooltip.hide();
 					circle.attr({ fill: 'black' });
 					textProcess.attr({ fill: 'black' })
 				}
 
 				// set a color when enter in the box
-				circle.on('mouseenter', canAcceptInput);
-				textProcess.on('mouseenter', canAcceptInput);
+				circle.on('mouseenter', onMouseEnter);
+				textProcess.on('mouseenter', onMouseEnter);
 				
 				// remove the color when enter in the box
-				circle.on('mouseleave', setCircleColor);
-				textProcess.on('mouseleave', setCircleColor);
+				circle.on('mouseleave', onMouseLeave);
+				textProcess.on('mouseleave', onMouseLeave);
 
 				// add the input name and circle to the groups
 				self._group.add(textProcess);
@@ -126,6 +138,28 @@ define([
 				var circle = this._draw.circle(LINE_DIRECTION_RADIUS)
 					.move(width - LINE_DIRECTION_RADIUS/2, BOX_HEIGHT * (1 + ((1 + inputs.length) / 2)));
 			
+				var onMouseEnter = function() {
+					var bbox = self._group.bbox();
+					Tooltip.show(bbox.x + bbox.width + 10, bbox.y, {
+						displayName: output.get('displayName'),
+						type: output.get('type'),
+						defaultValue: output.get('defaultValue'),
+						minOccurs: output.get('minOccurs'),
+						maxOccurs: output.get('maxOccurs'),
+						allowedValues: output.get('allowedValues')
+					});
+				};
+
+				var onMouseLeave = function() {
+					Tooltip.hide();
+				}
+
+				// set a color when enter in the box
+				circle.on('mouseenter', onMouseEnter);
+				
+				// remove the color when enter in the box
+				circle.on('mouseleave', onMouseLeave);
+
 				outputGroup.add(circle);
 			}
 

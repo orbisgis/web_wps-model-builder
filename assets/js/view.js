@@ -6,8 +6,9 @@ define([
 	'jquery', 
 	'WPS/WPSManager', 
 	'process/Box',
+	'process/Tooltip',
 	'popup/popup'
-], function(module, $, WPSManager, Box, Popup) {
+], function(module, $, WPSManager, Box, Tooltip, Popup) {
 	return {
 		render: function() {
 			// DOM elements
@@ -25,8 +26,9 @@ define([
 			// set constants for objects
 			Box.setDraw('svg-container');
 			WPSManager.fetchServers();
+			Tooltip.setDraw(Box.getDraw());
 
-			$addFilter.click(function(e) {	
+			$addFilter.click(function(e) {
 				var identifier = $processDescription.attr('data-identifier'),
 					serverName = $processDescription.attr('data-servername');
 

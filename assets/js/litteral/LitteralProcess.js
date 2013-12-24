@@ -14,6 +14,9 @@ define([
                 type: type
             }]
 		});
+
+		this.set('type', type);
+		this.set('value', '');
 	}
 
 	LitteralProcess.prototype = new Process();
@@ -22,18 +25,15 @@ define([
 		return this.set('box', new LitteralBox(20, 20, this));
 	}
 
-	LitteralProcess.prototype.getType = function() {
-		return this.get('outputs')[0].getType();
-	}
-
 	LitteralProcess.prototype.setValue = function(value) {
-		this.get('outputs')[0].setValue(value);
+		this.get('outputs')[0].set('value', value);
+		this.set('value', value);
 
 		return this;
 	}
 
 	LitteralProcess.prototype.getValue = function() {
-		return this.get('outputs')[0].getValue();
+		return this.get('value');
 	};
 	
 	return LitteralProcess;

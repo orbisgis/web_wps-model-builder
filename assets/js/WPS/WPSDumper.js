@@ -88,14 +88,13 @@ define([
 
 		_.each(LitteralManager.getLitterals(), function(litteral, id) {
 			var litteralNode = xmlDoc.createElement(WPSC_LITTERAL_NODE);
-			litteralNode.setAttribute(WPSC_SERVER_ID, id);
 			litteralNode.setAttribute(WPSC_LITTERAL_ID, litteral.get('uid'));
 			litteralNode.setAttribute(WPSC_LITTERAL_TYPE, litteral.get('type'));
 			litteralNode.appendChild(xmlDoc.createTextNode(litteral.get('value')));
 			wpsLitterals.appendChild(litteralNode);
 
-			_.each(litteral.getOutputs(), function(outputData) {
-				_.each(outputData.getLinks(), function(outputLink) {
+			_.each(litteral.get('outputs'), function(outputData) {
+				_.each(outputData.get('links'), function(outputLink) {
 					var inputData = getInputDataFromId(outputLink.data);
 
 					if(inputData) {
