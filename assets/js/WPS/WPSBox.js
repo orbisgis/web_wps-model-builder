@@ -3,9 +3,9 @@ define([
 	'process/Box',
 	'process/Tooltip',
 	'litteral/LitteralManager',
-	'popup/popup', 
+	'alertify',
 	'svg/svg.draggable'
-], function(SVG, Box, Tooltip, LitteralManager, Popup) {	
+], function(SVG, Box, Tooltip, LitteralManager, alertify) {	
 	// constants
 	var BOX_WIDTH = 50;
 	var BOX_HEIGHT = 25;
@@ -79,15 +79,17 @@ define([
 							self.endLine();
 						} else {
 							if(outputDataType !== input.get('type')) {
-								Popup.notification("Types incompatibles [" + outputDataType + ", " + input.get('type') + "]");
+								alertify.error("Types incompatibles [" + outputDataType + ", " + input.get('type') + "]");
 							} else {
-								Popup.notification(input.get('displayName') + " est limitée à " + input.get('maxOccurs') + " entrée.");
+								alertify.error(input.get('displayName') + " est limitée à " + input.get('maxOccurs') + " entrée.");
 							}
 						}
 					} else {
-						Popup.confirm("Voulez-vous ajouter une littéral " + input.get('type') + "?", function() {
-							LitteralManager.addLitteral(input.get('type'));
-						})
+						alertify.confirm("Voulez-vous ajouter une littéral " + input.get('type') + "?", function(e) {
+							if(e) {
+								LitteralManager.addLitteral(input.get('type'));
+							}
+						});
 					}
 				});
 

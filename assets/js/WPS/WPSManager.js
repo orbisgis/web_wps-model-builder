@@ -6,8 +6,8 @@ define([
 	'WPS/WPSServer',
 	'WPS/WPSDumper',
 	'litteral/LitteralManager',
-	'popup/popup'
-], function(module, $, _, Events, WPSServer, WPSDumper, LitteralManager, Popup) {
+	'alertify'
+], function(module, $, _, Events, WPSServer, WPSDumper, LitteralManager, alertify) {
 	var _servers = {};
 	var _renderedProcesses = {};
 
@@ -41,7 +41,7 @@ define([
 
 			// check if the server is already in the list
 			if(_.find(_servers, function(s) { return s.get('hostname') === hostname })) {
-				Popup.notification("Le serveur " + hostname + " est déjà présent.");
+				alertify.success("Le serveur " + hostname + " est déjà présent.")
 				delete server;
 				return;
 			}

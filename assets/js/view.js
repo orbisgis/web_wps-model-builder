@@ -7,8 +7,8 @@ define([
 	'WPS/WPSManager', 
 	'process/Box',
 	'process/Tooltip',
-	'popup/popup'
-], function(module, $, WPSManager, Box, Tooltip, Popup) {
+	'alertify'
+], function(module, $, WPSManager, Box, Tooltip, alertify) {
 	return {
 		render: function() {
 			// DOM elements
@@ -48,11 +48,9 @@ define([
 			});
 
 			$addServer.click(function() {
-				var url = Popup.input('URL du server :');
-
-				if(url) {
-					WPSServer.addServer(url);
-				}
+				alertify.prompt('URL du server :', function(e, url) {
+					if(e) WPSServer.addServer(url);
+				});
 			});
 
 			$saveProcesses.click(function() {
@@ -95,7 +93,7 @@ define([
 							'<option data-identifier="' + identifier + '">' + process.displayName + '</option>');
 					}	
 				} else {
-					Popup.notification("Une erreur est survenue pendant la récupération des processus");
+					alertify.error("Une erreur est survenue pendant la récupération des processus");
 				}
 			});
 
@@ -108,7 +106,7 @@ define([
 					});
 					$processDescription.append('<h3>' + process.displayName + '</h3>');
 				} else {
-					Popup.notification("Une erreur est survenue pendant la récupération du processus " + identifier);
+					alertify.error("Une erreur est survenue pendant la récupération du processus " + identifier);
 				}
 			});
 		}

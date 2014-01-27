@@ -5,14 +5,15 @@ requirejs.config({
 	paths: {
 		'underscore': 'vendor/underscore-min',
 		'jquery': 'vendor/jquery-2.0.3.min',
-		'SVG': 'svg/SVG'
+		'SVG': 'svg/SVG',
+		'alertify': 'vendor/alertify'
 	},
 	config: {
 		'WPS/WPSServer': {
-			'url-proxy': 'http://192.168.0.12/wps/lib/proxy.php?url={url}',
+			'url-proxy': 'http://localhost/wps/lib/proxy.php?url={url}',
 		},
 		'WPS/WPSManager': {
-			'wps-server': 'http://192.168.0.12/wps/lib/serveurs.json'
+			'wps-server': 'http://localhost/wps/lib/serveurs.json'
 		}
 	}
 

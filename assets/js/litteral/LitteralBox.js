@@ -1,8 +1,8 @@
 define([
 	'SVG', 
 	'process/Box',
-	'popup/popup'
-], function(SVG, Box, Popup) {
+	'alertify'
+], function(SVG, Box, alertify) {
 
 	// constants
 	var BOX_WIDTH = 50;
@@ -69,10 +69,12 @@ define([
 		
 		var valueText = this._draw.text('<Cliquez>').move(LINE_DIRECTION_RADIUS * 2, BOX_HEIGHT * 1.5);
 		var fnEditValue = function() {
-			Popup.input("Entrer votre valeur", valueText.text(), function(value) {
-				valueText.text(value);
-				process.setValue(value);
-			})
+			alertify.prompt("Entrer votre valeur", function(e, value) {
+				if(e) {
+					valueText.text(value);
+					process.setValue(value);
+				}
+			}, valueText.text());
 		};
 
 		valueRect.click(fnEditValue);
