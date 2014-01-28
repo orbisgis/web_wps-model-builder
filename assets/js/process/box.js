@@ -29,7 +29,7 @@ define([
 	}
 
 	Box.setDraw = function(drawId) {
-		Box._draw = SVG(drawId);
+		Box._draw = SVG(drawId).size('100%', '95%');
 			
 		// unselect the selected box when we click on the draw
 		Box._draw.on('click', function(e) {
