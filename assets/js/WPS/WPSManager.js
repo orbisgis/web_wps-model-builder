@@ -103,8 +103,10 @@ define([
 		},
 
 		save: function() {
+			alertify.log("Création du fichier d'exportation.");
 			var xml = WPSDumper.dump(_servers, _renderedProcesses);
 
+			alertify.success("Le fichier est dans la console...");
 			console.log(new XMLSerializer().serializeToString(xml));
 		}		
 	}

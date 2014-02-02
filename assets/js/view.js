@@ -2,13 +2,12 @@
  * Main module
  */
 define([
-	'module',
 	'jquery', 
 	'WPS/WPSManager', 
 	'process/Box',
 	'process/Tooltip',
 	'alertify'
-], function(module, $, WPSManager, Box, Tooltip, alertify) {
+], function($, WPSManager, Box, Tooltip, alertify) {
 	return {
 		render: function() {
 			// DOM elements
@@ -95,17 +94,15 @@ define([
 				}	
 			});
 
+			// Get process informations.
+			// This event is trigger if the server responds and we can process the result properly
 			WPSManager.on('describe-process', function(server, identifier, process) {
-				if(process) {
-					$processDescription.html('');
-					$processDescription.attr({
-						'data-identifier': identifier,
-						'data-servername': server.get('uid')
-					});
-					$processDescription.append('<h3>' + process.displayName + '</h3>');
-				} else {
-					alertify.error("Une erreur est survenue pendant la récupération du processus " + identifier);
-				}
+				$processDescription.html('');
+				$processDescription.attr({
+					'data-identifier': identifier,
+					'data-servername': server.get('uid')
+				});
+				$processDescription.append('<h3>' + process.displayName + '</h3>');
 			});
 		}
 	}

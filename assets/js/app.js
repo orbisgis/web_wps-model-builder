@@ -9,33 +9,16 @@ requirejs.config({
 		'alertify': 'vendor/alertify'
 	},
 	config: {
+		// proxy : {url} will be replace by the distant url.
 		'WPS/WPSServer': {
 			'url-proxy': 'http://localhost/wps/lib/proxy.php?url={url}',
 		},
+		// pre-loading servers : must be json array of urls	
 		'WPS/WPSManager': {
 			'wps-server': 'http://localhost/wps/lib/serveurs.json'
 		}
 	}
-
 });
-
-/**
- TODO: 
- [x] Ajouter des serveurs
- [x] Export vers un fichier XML
- [ ] Hover sur le titre du input pour afficher le type
- [ ] afficher info du point de sortie
- [x] Bug buffer x2
- [ ] Meilleur gestion des littéraux (string-choice, xs:...)
- [x] Vérifier le minOccurs/maxOccurs
- [x] Supprimer process et pas que les box!
- [ ] Supprimer les litteraux
- [x] Vérifier qu'un serveur n'apparait pas deux fois dans la liste
- [x] Enlever la dépendance DOM dans WPSManager
- [ ] Dépendance de SVG problématique
- [x] Utiliser les Events Backbone
- [x] Utiliser uid du WPSServer au lieu de son hostname
-*/
 
 /**
  * Main module. Call the render methode from the view.
