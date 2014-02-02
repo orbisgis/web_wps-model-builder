@@ -28,7 +28,7 @@ define([
 						}, this);
 					},
 					error: function() {
-						// fail silently
+						alertify.error("Impossible de télécharger la liste des serveurs existants. " + wpsServers)
 					}
 				});
 			}		
@@ -46,8 +46,14 @@ define([
 				return;
 			}
 
-			server.getCapabilities(function(processes) {
-				WPSManager.trigger('get-capabilities', server, processes);
+			alertify.log("Récupération des informations du serveur " + server.getDisplayName(true));
+			server.getCapabilities(function(error, processes) {
+				if(error) {
+					alertify.error(error);
+				} else {
+					alertify.success("Informations correctement reçues du server " + server.getDisplayName(true));
+					WPSManager.trigger('get-capabilities', server, processes);
+				}
 			});
 
 			_servers[serverUID] = server;
@@ -57,8 +63,14 @@ define([
 			var server = _servers[serverName];
 
 			if(server) {
-				server.describeProcess(identifier, function(process) {
-					WPSManager.trigger('describe-process', server, identifier, process);
+				alertify.log("Récupération les informations du processus <strong>" + identifier + "</strong>");
+				server.describeProcess(identifier, function(error, process) {
+					if(error) {
+						alertify.error(error);
+					} else {
+						alertify.success("Informations correctement reçues du processus <strong>" + identifier + "</strong>");
+						WPSManager.trigger('describe-process', server, identifier, process);
+					}
 				});		
 			}
 		},

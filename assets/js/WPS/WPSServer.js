@@ -4,9 +4,8 @@ define([
 	'underscore',
 	'process/Model',
 	'WPS/WPSParser',
-	'popup/SplashScreen', 
 	'WPS/WPSProcess'
-], function(module, $, _, Model, WPSParser, splashScreen, WPSProcess) {
+], function(module, $, _, Model, WPSParser, WPSProcess) {
 	var proxyURL = module.config()['url-proxy'];
 	var DEFAULT_VERSION = '1.0.0';
 	var DEFAULT_SERVICE = 'WPS';
@@ -63,14 +62,15 @@ define([
 	}
 
 	WPSServer.prototype.getCapabilities = function(callback) {
-		if(!this.get('ready')) {
-			// show the splash screen 
-			splashScreen.show('GetCapabilities: ' + this._url);
+		if(this.get('ready')) {
+			// we dont need to reload the server informations
+			callback("", this.get('processes'));
+		} else {
 			// create the URL
 			var url = this.createURL({
 				'request': 'GetCapabilities'
 			});
-			// call the URL
+			// call the URL and get informations about this server.
 			$.ajax({
 				type: 'GET',
 				url: url,
@@ -88,28 +88,25 @@ define([
 						}
 					}, this);
 
-					// hide the splash screen
-					splashScreen.hide();
 					// the server is ready
 					this.set('ready', true);
 					// call the callback function
-					callback(processes);
+					callback("", processes);
 				},
 				error: function() {
-					callback();
+					callback("Impossible de se connecter au serveur " + this.getDisplayName(true) + " pour avoir des informations.");
 				}	
 			});
-		}
+		}		
 	}
 
 	WPSServer.prototype.describeProcess = function(identifier, callback) {
 		if(!this.get('ready')) {
-			callback();
+			callback("Le serveur " + this.getDisplayName(true) + " n'est pas encore près.");
 			return;
 		}
 
 		if(!this.getProcess(identifier).ready) {
-			splashScreen.show('DescribeProcess: ' + identifier);
 			var url = this.createURL({
 				'request': 'DescribeProcess',
 				'identifier': identifier
@@ -127,16 +124,15 @@ define([
 					process.inputData = description.dataInputs;
 					process.outputData = description.processOutputs;
 
-					splashScreen.hide();
 					process['ready'] = true;
-					callback(process);
+					callback("", process);
 				},
 				error: function(e) {
-					callback();
+					callback("Impossible d'avoir les information sur <strong>" + identifier + "</strong>");
 				}	
 			});
 		} else {
-			callback(this.getProcess(identifier));
+			callback("", this.getProcess(identifier));
 		}
 	}
 
@@ -152,6 +148,10 @@ define([
 			return process; 
 		}
 	};
+
+	WPSServer.prototype.getDisplayName = function(strong) {
+		return (strong ? "<strong>" : "") + this.get('hostname') + (strong ? "</strong>" : "");
+	}
 
 	return WPSServer;
 });
