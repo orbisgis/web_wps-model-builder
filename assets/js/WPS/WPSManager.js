@@ -107,7 +107,7 @@ define([
 			var xml = WPSDumper.dump(_servers, _renderedProcesses);
 
 			alertify.success("Le fichier est dans la console...");
-			console.log(new XMLSerializer().serializeToString(xml));
+			return new XMLSerializer().serializeToString(xml);
 		}		
 	}
 	

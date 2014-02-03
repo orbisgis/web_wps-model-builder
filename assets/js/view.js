@@ -53,8 +53,24 @@ define([
 			});
 
 			$saveProcesses.click(function() {
-				WPSManager.save();
-			})
+				var xml = WPSManager.save();
+				alertify.success("Cliquer sur télécharger output.")
+				createFile('processes.xml', xml);
+			});
+
+			function createFile(filename, output) {
+			    var file = new Blob([output], {type : 'text/xml'});
+			    
+			    var a = document.getElementById("downloadFile");
+			    a.classList.remove("hide");
+			    a.href = URL.createObjectURL(file);
+			    a.download = filename;
+			    a.textContent = 'Télécharger output';
+			    $(a).on('click', function() {
+			    	alertify.log("Téléchargement du fichier en cours...");
+			    	a.classList.add("hide");
+			    })
+			}
 			
 			Box.on('unselect-box', function(e) {
 				$selectedBoxSpan.text('<nothing>');
