@@ -73,8 +73,15 @@ define([
 				if(e) {
 					valueText.text(value);
 					process.setValue(value);
+					
+					var textWidth = valueText.bbox().width;
+					while(textWidth > 92) {
+						value = value.substring(0, value.length - 1);
+						valueText.text(value + "...");
+						textWidth = valueText.bbox().width;
+					}
 				}
-			}, valueText.text());
+			}, process.getValue());
 		};
 
 		valueRect.click(fnEditValue);

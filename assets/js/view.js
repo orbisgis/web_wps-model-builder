@@ -53,19 +53,22 @@ define([
 				});
 			});
 
+			// create the file and show the download button
 			$saveProcesses.click(function() {
 				alertify.log("Création du fichier d'exportation.");
 				var xml = WPSManager.save();
 				alertify.success("Cliquer sur le boutton de téléchargement.");
 
-				var file = new Blob([output], {type : 'text/xml'});
+				console.log(xml)
+				var file = new Blob([xml], {type : 'text/xml'});
 				
 				$downloadFile.removeClass('hide').attr({
 					href: URL.createObjectURL(file),
 					download: 'processes.xml'
 				});
-			});
+			}); 
 
+			// hide the button when we click on it
 			$downloadFile.on('click', function() {
 				alertify.log("Téléchargement du fichier en cours...");
 				$downloadFile.addClass('hide');
