@@ -17,7 +17,8 @@ define([
 				$selectedBoxSpan = $('#selected-box'),
 				$processDescription = $('#process-description'),
 				$addServer = $('#add-server'),
-				$saveProcesses = $('#save-processes');
+				$saveProcesses = $('#save-processes'),
+				$downloadFile = $('#download-file');
 		
 			var $listServers = $('#list-serveurs'),
 				$processDescription = $('#process-description');
@@ -53,25 +54,23 @@ define([
 			});
 
 			$saveProcesses.click(function() {
+				alertify.log("Création du fichier d'exportation.");
 				var xml = WPSManager.save();
-				alertify.success("Cliquer sur télécharger output.")
-				createFile('processes.xml', xml);
+				alertify.success("Cliquer sur le boutton de téléchargement.");
+
+				var file = new Blob([output], {type : 'text/xml'});
+				
+				$downloadFile.removeClass('hide').attr({
+					href: URL.createObjectURL(file),
+					download: 'processes.xml'
+				});
 			});
 
-			function createFile(filename, output) {
-			    var file = new Blob([output], {type : 'text/xml'});
-			    
-			    var a = document.getElementById("downloadFile");
-			    a.classList.remove("hide");
-			    a.href = URL.createObjectURL(file);
-			    a.download = filename;
-			    a.textContent = 'Télécharger output';
-			    $(a).on('click', function() {
-			    	alertify.log("Téléchargement du fichier en cours...");
-			    	a.classList.add("hide");
-			    })
-			}
-			
+			$downloadFile.on('click', function() {
+				alertify.log("Téléchargement du fichier en cours...");
+				$downloadFile.addClass('hide');
+			})
+		
 			Box.on('unselect-box', function(e) {
 				$selectedBoxSpan.text('<nothing>');
 			});
