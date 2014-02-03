@@ -47,7 +47,7 @@ define([
 	WPSServer.prototype = new Model();
 
 	WPSServer.prototype.createURL = function(args) {
-		var url = [];
+		var parameters = [];
 
 		_.each(
 			_.extend({ 
@@ -55,10 +55,11 @@ define([
 				service: this.get('service')
 			}, args), 
 			function(value, key, list) {
-				url.push(key + "=" + value);
-			});
+				parameters.push(key + "=" + value);
+			}
+		);
 
-		return proxyURL.replace('{url}', escape(this.get('url') + '?' + url.join('&')));
+		return proxyURL.replace('{url}', escape(this.get('url') + '?' + parameters.join('&')));
 	}
 
 	WPSServer.prototype.getCapabilities = function(callback) {
