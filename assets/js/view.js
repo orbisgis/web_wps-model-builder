@@ -52,8 +52,8 @@ define([
 			$checkProcesses.click(function() {
 				var boolCheck = WPSManager.check();
 				if (boolCheck){
-					//try
-					//{
+					try
+					{
 						WPSManager.setOrder()
 						var xml = WPSManager.execute();
 						var file = new Blob([xml]);
@@ -62,10 +62,10 @@ define([
 							href: URL.createObjectURL(file),
 							download: 'test.txt'
 						});
-					//}
-					//catch(e){
-					//	alertify.log("Attention, il y a une boucle infinie");
-					//}
+					}
+					catch(e){
+						alertify.log(e);
+					}
 				}
 			});
 				

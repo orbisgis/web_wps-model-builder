@@ -21,10 +21,12 @@ define(['underscore'], function(_) {
 	 * parse the occurence of a data.
 	 */
 	var parseOccurenceValue = function(node, tagName, defaultValue) {
-		var value = node.attributes['minOccurs'];
-
+		var value;
+		if (tagName === 'minOccurs') {value = node.attributes['minOccurs'];}
+		if (tagName === 'maxOccurs') {value = node.attributes['maxOccurs'];}
+		
 		if(value) {
-			value = node.attributes['minOccurs'].nodeValue;
+			value = value.nodeValue;
 
 			if(value) {
 				try {
@@ -54,13 +56,13 @@ define(['underscore'], function(_) {
 		_.each(dataInputs.children, function(input) {
 			var identifier = getTextContent(input, 'Identifier'),
 				title = getTextContent(input, 'Title', identifier),
-				abstract = getTextContent(input, 'Abstract', title);
+				abs = getTextContent(input, 'Abstract', title);
 			
 			if(identifier) {
 				var inputData = {
 					'identifier': identifier,
 					'displayName': title,
-					'abstract': abstract,
+					'abstract': abs,
 					'minOccurs': parseOccurenceValue(input, 'minOccurs', 0),
 					'maxOccurs': parseOccurenceValue(input, 'maxOccurs', 1),
 					'type': '',
@@ -129,13 +131,13 @@ define(['underscore'], function(_) {
 		_.each(processOutputs.children, function(output) { 
 			var identifier = getTextContent(output, 'Identifier'),
 				title = getTextContent(output, 'Title', identifier),
-				abstract = getTextContent(output, 'Abstract', title);
+				abs = getTextContent(output, 'Abstract', title);
 			
 			if(identifier) {
 				var outputData = {
 					'identifier': identifier,
 					'displayName': title,
-					'abstract': abstract,
+					'abstract': abs,
 					'minOccurs': parseOccurenceValue(output, 'minOccurs', 1),
 					'maxOccurs': parseOccurenceValue(output, 'maxOccurs', 1),
 					'type': '',

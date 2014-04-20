@@ -33,6 +33,28 @@ define([
 			if (litteral.get('type') === 'xs:double'){
 				if (isNaN(parseFloat(litteral.get('value')))) {alertify.log("Le littéral xs:double n'est pas un réel"); bool = false;}
 			}
+			
+			if (litteral.get('type') === 'string-choice'){
+				var b = false;
+				_.each(litteral.get('outputs'), function(output) {
+					_.each(output.get('links'), function(outputLink){
+						var nextProcess = processes[outputLink.process];
+						_.each(nextProcess.get('inputs'), function(inputsData){
+							if (inputsData.get('type') === 'string-choice'){
+								_.each(inputsData.get('allowedValues'), function(allow){
+									
+									if (allow === litteral.get('value')){
+										b = true;
+									}
+								});
+							}
+						});
+					});
+				});
+				
+				if (!b)  {alertify.log("La valeur du littéral string-choice n'est pas autorisée"); bool = false;}
+			}
+			
 			var litteralNbOutputs = 0;
 			_.each(litteral.get('outputs'), function(outputData) {
 				if  (length(outputData.get('links')) != 0) {litteralNbOutputs += 1;}

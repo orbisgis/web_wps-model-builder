@@ -16,7 +16,7 @@ Utilisation d'un proxy (en PHP) afin de pouvoir effectuer des requêtes AJAX sur
 
 # Librairies annexes
 
- - jQuery (version 2.0.3) : manipulation du DOM, Events et Ajax
+ - jQuery (version 2.1.0) : manipulation du DOM, Events et Ajax
  - Bootstrap (version 2.3.2) : CSS de base pour développer
  - Backbone (version 1.0.0) : utilisation des classes Events et Model
  - SVG.JS (version 0.32-6-g74614e0) : manipulation des objets SVG
