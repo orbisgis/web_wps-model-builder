@@ -5,9 +5,10 @@ define([
 	'process/Events',
 	'WPS/WPSServer',
 	'WPS/WPSDumper',
+	'WPS/WPSExecute',
 	'litteral/LitteralManager',
 	'alertify'
-], function(module, $, _, Events, WPSServer, WPSDumper, LitteralManager, alertify) {
+], function(module, $, _, Events, WPSServer, WPSDumper, WPSExecute, LitteralManager, alertify) {
 	var _servers = {};
 	var _renderedProcesses = {};
 
@@ -106,7 +107,19 @@ define([
 			var xml = WPSDumper.dump(_servers, _renderedProcesses);
 
 			return new XMLSerializer().serializeToString(xml);
-		}		
+		},
+
+		check: function() {		
+			return WPSExecute.check(_renderedProcesses);
+		},
+		
+		setOrder: function() {		
+			WPSExecute.setOrder(_renderedProcesses);
+		},
+		
+		execute: function() {
+			return WPSExecute.execute(_servers, _renderedProcesses);
+		}
 	}
 	
 	_.extend(WPSManager, Events);

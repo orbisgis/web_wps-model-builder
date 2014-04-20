@@ -4,14 +4,18 @@
 requirejs.config({
 	paths: {
 		'underscore': 'vendor/underscore-min',
-		'jquery': 'vendor/jquery-2.0.3.min',
+		'jquery': 'vendor/jquery-2.1.0.min',
 		'SVG': 'svg/SVG',
 		'alertify': 'vendor/alertify'
 	},
 	config: {
 		// proxy : {url} will be replace by the distant url.
 		'WPS/WPSServer': {
-			'url-proxy': 'http://localhost/wps/lib/proxy.php?url={url}',
+			'url-proxy': 'http://localhost/wps/lib/getProxy.php?url={url}',
+		},
+		// proxy used for POST request
+		'WPS/WPSExecute': {
+			'proxy': 'http://localhost/wps/lib/postProxy.php',
 		},
 		// pre-loading servers : must be json array of urls	
 		'WPS/WPSManager': {

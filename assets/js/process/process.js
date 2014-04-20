@@ -10,6 +10,7 @@ define([
 		this._uid = _.uniqueId('process_');
 		this.attributes = {
 			uid: this._uid,
+			order: 0,
 			identifier: process.identifier || this._uid,
 			displayName: process.displayName || process.identifier || this._uid,
 			inputs: [],

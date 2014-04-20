@@ -57,7 +57,7 @@ define([
 						var outputData = drawingLine._process.get('outputs')[0],
 							outputDataType = outputData.get('type');
 
-						// TODO: We asume that the output is always a ComplexData
+						// TODO: We assume that the output is always a ComplexData
 						if(input.canReceive(outputDataType)) {
 							var startBBox = drawingLine._group.bbox(),
 								endBBox = self._group.bbox(),

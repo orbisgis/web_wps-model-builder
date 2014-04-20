@@ -17,7 +17,7 @@ define([
 			defaultValue: data.defaultValue || '',
 			value: data.defaultValue || '',
 			allowedValues: data.allowedValues || [],
-			links: []
+			links: [],
 		};
 	}
 
@@ -31,7 +31,7 @@ define([
 		var link = {
 			data: data.get('uid'),
 			process: process.get('uid')
-		};
+		};	
 		this.attributes['links'].push(link);
 		this.trigger('add-link', link);		
 	};

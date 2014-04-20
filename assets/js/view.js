@@ -3,7 +3,7 @@
  */
 define([
 	'jquery', 
-	'WPS/WPSManager', 
+	'WPS/WPSManager',
 	'process/Box',
 	'process/Tooltip',
 	'alertify'
@@ -17,6 +17,8 @@ define([
 				$selectedBoxSpan = $('#selected-box'),
 				$processDescription = $('#process-description'),
 				$addServer = $('#add-server'),
+				$executeProcesses = $('#execute-processes'),
+				$checkProcesses = $('#check-processes'),
 				$saveProcesses = $('#save-processes'),
 				$downloadFile = $('#download-file');
 		
@@ -46,6 +48,32 @@ define([
 			$addLink.click(function(e) {
 				Box.getSelectedBox().startLine();
 			});
+			
+			$checkProcesses.click(function() {
+				var boolCheck = WPSManager.check();
+				if (boolCheck){
+					//try
+					//{
+						WPSManager.setOrder()
+						var xml = WPSManager.execute();
+						var file = new Blob([xml]);
+						
+						$executeProcesses.removeClass('hide').attr({
+							href: URL.createObjectURL(file),
+							download: 'test.txt'
+						});
+					//}
+					//catch(e){
+					//	alertify.log("Attention, il y a une boucle infinie");
+					//}
+				}
+			});
+				
+			$executeProcesses.on('click', function() {
+				alertify.log("Téléchargement du fichier en cours...");
+				$downloadFile.addClass('hide');
+			});
+			
 
 			$addServer.click(function() {
 				alertify.prompt('URL du server :', function(e, url) {
@@ -57,7 +85,7 @@ define([
 			$saveProcesses.click(function() {
 				alertify.log("Création du fichier d'exportation.");
 				var xml = WPSManager.save();
-				alertify.success("Cliquer sur le boutton de téléchargement.");
+				alertify.success("Cliquer sur le bouton de téléchargement.");
 
 				console.log(xml)
 				var file = new Blob([xml], {type : 'text/xml'});
@@ -72,7 +100,7 @@ define([
 			$downloadFile.on('click', function() {
 				alertify.log("Téléchargement du fichier en cours...");
 				$downloadFile.addClass('hide');
-			})
+			});
 		
 			Box.on('unselect-box', function(e) {
 				$selectedBoxSpan.text('<nothing>');

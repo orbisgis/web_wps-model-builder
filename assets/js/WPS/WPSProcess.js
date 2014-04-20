@@ -4,7 +4,7 @@ define([
 ], function(Process, WPSBox) {
 
 	function WPSProcess() {
-		Process.apply(this, arguments)
+		Process.apply(this, arguments);
 	}
 	
 	WPSProcess.prototype = new Process();

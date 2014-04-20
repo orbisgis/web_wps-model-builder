@@ -84,12 +84,8 @@ define(['underscore'], function(_) {
 						// we override the type because we choose between strings
 						inputData['type'] = 'string-choice';
 
-						_.each(allowedValues.length, function(allowedValue) {
-							allowedValue = getTextContent(allowedValues, 'allowedValues');
-
-							if(allowedValue) {
-								inputData['allowedValues'].push(allowedValue);
-							}
+						_.each(allowedValues.childNodes, function(allowedValue) {
+							inputData['allowedValues'].push(allowedValue.textContent);
 						});
 					}
 				} else if(complexData) {
@@ -148,7 +144,8 @@ define(['underscore'], function(_) {
 				};
 
 				// the output data
-				var	complexOutput = getFirstElementByTagName(output, 'ComplexOutput');
+				var	literalOutput = getFirstElementByTagName(output, 'LiteralOutput'),
+					complexOutput = getFirstElementByTagName(output, 'ComplexOutput');
 
 				if(complexOutput) {
 					var dfault = getFirstElementByTagName(complexOutput, 'Default'),
@@ -173,6 +170,25 @@ define(['underscore'], function(_) {
 							}
 						})
 					}										
+				}
+				else if (literalOutput) {
+					var dataType = getTextContent(literalOutput, 'DataType', ''),
+						defaultValue = getTextContent(literalOutput, 'DefaultValue', ''),
+						allowedValues = getFirstElementByTagName(literalOutput, 'AllowedValues');
+
+					outputData['defaultValue'] = defaultValue;
+					outputData['type'] = dataType;
+					if (dataType === 'double') {outputData['type'] = 'xs:double';}
+					if (dataType === 'int') {outputData['type'] = 'xs:int';}
+						
+					if(allowedValues) {
+						// we override the type because we choose between strings
+						outputData['type'] = 'string-choice';
+
+						_.each(allowedValues.childNodes, function(allowedValue) {
+							inputData['allowedValues'].push(allowedValue.textContent);
+						});
+					}
 				}
 			}
 
